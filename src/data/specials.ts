@@ -80,36 +80,37 @@ export const SPECIALS: Record<string, SpecialDefinition> = {
   },
 
   // ---- 武器固有の特殊 ----
-  // ダメージ倍率は psostats.com の実装値 ÷ 0.9 (係数の折り込みを外した値)
+  // ダメージ倍率は psostats.com の実装値そのまま (共通係数 0.9 折り込み済み)
 
   // Frozen Shooter / Snow Queen: 100% 凍結、Heavy 相当の威力・命中
   "Frozen Shooter": {
     name: "Frozen Shooter",
     category: "freeze",
     fixedActivation: 100,
-    damageModifier: 1.89,
+    damageModifier: 1.7,
   },
   "Dark Flow": {
     name: "Dark Flow",
     category: "unique",
-    damageModifier: 1.89,
+    damageModifier: 1.7,
     costPerSwing: "残りHPが最大の一定割合以下のときのみ使用可 (5 ヒット)",
   },
   TJS: {
     name: "TJS",
     category: "unique",
-    damageModifier: 1.89,
-    costPerSwing: "衝撃波 (Tsumikiri J-Sword)",
+    damageModifier: 1.7,
+    fixedAccuracy: 100,
+    costPerSwing: "衝撃波は必中 (Tsumikiri J-Sword)",
   },
   "Mille Marteaux": {
     name: "Mille Marteaux",
     category: "unique",
-    damageModifier: 1.89,
+    damageModifier: 1.7,
   },
-  Orotiagito: { name: "Orotiagito", category: "unique", damageModifier: 1.94 },
-  Raikiri: { name: "Raikiri", category: "unique", damageModifier: 0.97 },
-  "Lavis Cannon": { name: "Lavis Cannon", category: "unique", damageModifier: 0.56 },
-  "Lavis Blade": { name: "Lavis Blade", category: "unique", damageModifier: 0.65 },
+  Orotiagito: { name: "Orotiagito", category: "unique", damageModifier: 1.75 },
+  Raikiri: { name: "Raikiri", category: "unique", damageModifier: 0.875 },
+  "Lavis Cannon": { name: "Lavis Cannon", category: "unique", damageModifier: 0.5 },
+  "Lavis Blade": { name: "Lavis Blade", category: "unique", damageModifier: 0.583 },
   // Plantain Huge Fan: 特殊はダメージなし (psostats 準拠)
   PHF: { name: "PHF", category: "unique", damageModifier: 0 },
 };

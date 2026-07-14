@@ -1,6 +1,6 @@
 export * from "./types.js";
 export * from "./constants.js";
-export { effectiveAtp, effectiveDfp, effectiveEvp, totalAta, equipmentAtp } from "./stats.js";
+export { atpRange, effectiveAtp, effectiveDfp, effectiveEvp, totalAta, equipmentAtp } from "./stats.js";
 export { damageRange, rawDamage, attackDamageModifier, criticalDamage } from "./damage.js";
 export { hitChance } from "./accuracy.js";
 export { evaluateSpecial, hpCutFraction } from "./special.js";

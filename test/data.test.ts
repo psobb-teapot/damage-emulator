@@ -36,15 +36,15 @@ describe("生成データ: 武器", () => {
     }
   });
 
-  it("Vjaya は 5.67 倍・Heavy 命中", () => {
+  it("Vjaya は 5.1 倍・Heavy 命中", () => {
     const w = WEAPONS["Vjaya"]!;
-    expect(attackDamageModifier(w, "special")).toBe(5.67);
+    expect(attackDamageModifier(w, "special")).toBe(5.1);
     expect(w.specialUsesHeavyAccuracy).toBe(true);
   });
 
-  it("Dark Flow は 1.89 倍・5 ヒット・Heavy 命中", () => {
+  it("Dark Flow は 1.7 倍・5 ヒット・Heavy 命中", () => {
     const w = WEAPONS["Dark Flow"]!;
-    expect(attackDamageModifier(w, "special")).toBe(1.89);
+    expect(attackDamageModifier(w, "special")).toBe(1.7);
     expect(w.hitsPerAttack).toBe(5);
     expect(w.specialUsesHeavyAccuracy).toBe(true);
   });

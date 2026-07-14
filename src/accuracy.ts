@@ -5,6 +5,7 @@ import {
   EVP_FACTOR,
   RANGED_WEAPONS,
 } from "./constants.js";
+import { resolveSpecial } from "./data/specials.js";
 import { effectiveEvp, totalAta } from "./stats.js";
 import type {
   AttackType,
@@ -33,8 +34,11 @@ export function hitChance(
   context: CombatContext = {},
 ): number {
   let typeMod = ATTACK_ACCURACY_MODIFIER[attackType];
-  if (attackType === "special" && weapon.specialUsesHeavyAccuracy) {
-    typeMod = ATTACK_ACCURACY_MODIFIER.hard;
+  if (attackType === "special") {
+    // TJS の衝撃波など、命中率が固定の特殊
+    const special = resolveSpecial(weapon.special);
+    if (special?.fixedAccuracy != null) return special.fixedAccuracy;
+    if (weapon.specialUsesHeavyAccuracy) typeMod = ATTACK_ACCURACY_MODIFIER.hard;
   }
   const comboMod = COMBO_ATA_MODIFIER[comboStep - 1] ?? 1.0;
   const ataEff = totalAta(player, weapon) * typeMod * comboMod;

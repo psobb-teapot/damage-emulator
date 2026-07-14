@@ -68,23 +68,41 @@ const chargeVulcan = makeWeapon({
 
 ## 実装している計算式
 
-すべて [wiki.pioneer2.net](https://wiki.pioneer2.net/w/Game_mechanics) 準拠 (Ephinea 値):
+[wiki.pioneer2.net](https://wiki.pioneer2.net/w/Game_mechanics) の式に準拠し、
+定数は psostats.com の実装と同一 (共通係数 0.9 をダメージ倍率へ折り込み):
 
 | 項目 | 式 |
 |---|---|
-| ダメージ | `⌊(ATPeff − DFPeff) / 5 × 0.9 × 攻撃修正⌋` |
-| 攻撃修正 | Normal 1.0 / Hard 1.89 / Special 0.56 / Charge・Spirit・Berserk 3.33 / Vjaya 5.67 |
-| 実効ATP | `[BaseATP + Wvar×WSpread] × (1 + シフタ%) + EQATP + Pvar` |
-| 装備ATP | `[武器ATPmin + グラインド×2 + 防具ATP] × (1 + 属性%)` |
+| ダメージ | `⌊max(0, (ATPeff − DFPeff) / 5) × 攻撃修正⌋` |
+| 攻撃修正 | Normal 0.9 / Hard 1.7 / Special 0.5 / Charge・Spirit・Berserk 3.0 / Vjaya 5.1 (wiki 表記の 1.0/1.89/0.56/3.33/5.67 × 0.9 に相当) |
+| 実効ATP (min) | `クラスATPmin × (1 + シフタ%) + EQATP` |
+| 実効ATP (max) | `クラスATPmax × (1 + シフタ%) + EQATP + WSpread + シフタ% × (WSpread + クラス分散)` |
+| クラス分散 | HU 5 / RA 4 / FO 2 (クラスATPmin = ステータス値 − 分散) |
+| 装備ATP | `[武器ATPmin + グラインド×2 + 防具ATP] × (1 + 属性%)` (CCA系ミニボスには属性%無効) |
 | 実効DFP | `DFP × (1 − ザルア%)` |
-| 命中率 | `ATA合計 × タイプ修正 × コンボ段修正 − EVPeff × 0.2 − 距離ペナルティ` |
-| タイプ修正 | Normal 1.0 / Hard 0.7 / Special 0.5 (例外武器は 0.7) |
+| 命中率 | `ATA合計 × タイプ修正 × コンボ段修正 − EVPeff × 0.2 − 距離ペナルティ` (0–100 にクランプ) |
+| ATA合計 | `クラスATA + 武器ATA + Hit% + 防具ATA` |
+| タイプ修正 | Normal 1.0 / Hard 0.7 / Special 0.5 (Vjaya・Dark Flow・Frozen Shooter は 0.7、TJS は必中) |
 | コンボ段修正 | 1段目 1.0 / 2段目 1.3 / 3段目 1.69 |
-| 実効EVP | `EVP × 状態異常修正 (麻痺 0.85 / 凍結 0.7 / 両方 0.55) × (1 − ザルア%)` |
+| 実効EVP | `EVP × 状態異常修正 (麻痺 0.85 / 凍結 0.7 / 両方 0.55)` (ザルアは EVP に影響しない) |
 | 距離ペナルティ | `距離 × 0.33` (HU/FO の射撃、Smartlink 無し時のみ) |
 | シフタ/ザルア | `1.3 × (Lv − 1) + 10` % (Lv1-30) |
 | クリティカル | 発生率 `min(LCK,100)/5` %、ダメージ ×1.5 |
 | 特殊発動率 | `(Power − 敵EDK/ESP) × 特殊効果係数 × ユニット倍率` (V501/V502 で ×1.5、即死系は V502 で ×2。凍結はキャップ 40%) |
+
+## psostats.com との一致検証
+
+実際の psostats.com/combo-calculator を Playwright で操作した結果と
+本エンジンの出力を突き合わせるパリティテストを `test/psostats-parity.test.ts` に収録
+(実測日 2026-07-15、10 パターン / クラス・武器・特殊・バフ・状態異常・最大ロールを網羅)。
+全パターンでダメージ・命中率・合計値が一致する。
+
+psostats と意図的に異なる点:
+- **Hell 系・状態異常系の発動率**: psostats は発動率を計算しない (本エンジンは wiki の式で算出)
+- **HP吸収系 (Gush 等) のダメージ**: psostats は 0 として扱うが、本エンジンは
+  実ゲームどおり特殊攻撃ダメージ (0.5x) を与える
+- **Demon's/Devil's**: psostats は発動 100% 前提の削り値を表示、本エンジンは発動率 50% を
+  期待値・キル確率に織り込む (削り割合・アンドロイド減衰は一致)
 
 ## データについて
 

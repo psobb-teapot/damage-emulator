@@ -4,20 +4,22 @@ import type { AttackType, ClassCategory, Difficulty, WeaponKind } from "./types.
  * 出典: https://wiki.pioneer2.net/w/Game_mechanics
  */
 
-/** ダメージ計算の攻撃修正値 */
+/**
+ * ダメージ計算の攻撃修正値。
+ * wiki の表記 (Normal 1.0 / Hard 1.89 / Special 0.56) に共通係数 0.9 を
+ * 折り込んだ値 (psostats.com の実装と同一)。
+ * Damage = floor((ATPeff - DFPeff) / 5 × modifier)
+ */
 export const ATTACK_DAMAGE_MODIFIER: Record<AttackType, number> = {
-  normal: 1.0,
-  hard: 1.89,
-  special: 0.56, // 状態異常・吸収系特殊の共通値。犠牲系は SpecialDefinition 側で上書き
+  normal: 0.9, // 1.0 × 0.9
+  hard: 1.7, // ≒ 1.89 × 0.9
+  special: 0.5, // ≒ 0.56 × 0.9 (状態異常・吸収系特殊。犠牲系は SpecialDefinition 側で上書き)
 };
 
-/** 犠牲系特殊 (Charge/Spirit/Berserk) のダメージ倍率 */
-export const SACRIFICIAL_MODIFIER = 3.33;
-/** Vjaya 固有のダメージ倍率 */
-export const VJAYA_MODIFIER = 5.67;
-
-/** ダメージ式の固定係数: Damage = (ATPeff - DFPeff) / 5 * 0.9 * modifier */
-export const DAMAGE_VARIANCE_FACTOR = 0.9;
+/** 犠牲系特殊 (Charge/Spirit/Berserk) のダメージ倍率 (≒ 3.33 × 0.9) */
+export const SACRIFICIAL_MODIFIER = 3.0;
+/** Vjaya 固有のダメージ倍率 (≒ 5.67 × 0.9) */
+export const VJAYA_MODIFIER = 5.1;
 
 /** クリティカルダメージ倍率 */
 export const CRITICAL_MULTIPLIER = 1.5;
@@ -52,13 +54,14 @@ export const EVP_STATUS_MODIFIER = {
 } as const;
 
 /**
- * キャラクター ATP のばらつき幅 Pvar,max。
- * 実効キャラATP = ステータス値 − Pvar,max + Pvar (Pvar は 1..Pvar,max)
+ * キャラクター ATP のばらつき幅 (classMax − classMin)。
+ * 実効キャラATP は [ステータス値 − 幅, ステータス値] の範囲を取る。
+ * psostats.com の classStats (minAtp/maxAtp) と一致する値。
  */
-export const PVAR_MAX: Record<ClassCategory, number> = {
-  hunter: 6,
+export const CLASS_ATP_SPREAD: Record<ClassCategory, number> = {
+  hunter: 5,
   ranger: 4,
-  force: 3,
+  force: 2,
 };
 
 /** シフタ/ザルア Lv1-30 の効果量 % = 1.3 * (Lv - 1) + 10 */

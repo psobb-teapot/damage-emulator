@@ -62,6 +62,8 @@ export interface SpecialDefinition {
   damageModifier?: number;
   /** 発動率が固定の特殊 (例: Frozen Shooter の凍結 100%) */
   fixedActivation?: number;
+  /** 命中率が固定の特殊 (例: TJS の衝撃波は必中 100%) */
+  fixedAccuracy?: number;
   /** 1振りあたりのコスト表示用 (例: "Meseta 200") */
   costPerSwing?: string;
 }
@@ -134,6 +136,8 @@ export interface Enemy {
   isMachine?: boolean;
   /** ボス (麻痺・即死などが無効) */
   isBoss?: boolean;
+  /** CCA系ミニボス (Gi Gue, Mericarol 等)。武器の属性%が無効 */
+  ccaMiniboss?: boolean;
   difficulty?: Difficulty;
   episode?: 1 | 2 | 4;
   /** 出現エリア (Forest, Caves, ... 情報用) */

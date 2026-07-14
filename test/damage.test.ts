@@ -43,27 +43,27 @@ describe("shiftaZalurePercent", () => {
 });
 
 describe("rawDamage", () => {
-  it("式どおりに切り捨てる: (ATP-DFP)/5 * 0.9 * mod", () => {
-    // (2000 - 600) / 5 * 0.9 * 1.89 = 476.28 → 476
-    expect(rawDamage(2000, 600, 1.89)).toBe(476);
+  it("式どおりに切り捨てる: floor((ATP-DFP)/5 × mod)", () => {
+    // (2000 - 600) / 5 × 1.7 = 476.0 → 476
+    expect(rawDamage(2000, 600, 1.7)).toBe(476);
   });
   it("ATP < DFP なら 0", () => {
-    expect(rawDamage(100, 600, 1.89)).toBe(0);
+    expect(rawDamage(100, 600, 1.7)).toBe(0);
   });
 });
 
-describe("attackDamageModifier", () => {
-  it("Normal は 1.0", () => expect(attackDamageModifier(excalibur, "normal")).toBe(1.0));
-  it("Hard は 1.89", () => expect(attackDamageModifier(excalibur, "hard")).toBe(1.89));
-  it("Berserk (犠牲系) は 3.33", () =>
-    expect(attackDamageModifier(excalibur, "special")).toBe(3.33));
-  it("Vjaya は 5.67", () => {
+describe("attackDamageModifier (0.9 折り込み済み)", () => {
+  it("Normal は 0.9", () => expect(attackDamageModifier(excalibur, "normal")).toBe(0.9));
+  it("Hard は 1.7", () => expect(attackDamageModifier(excalibur, "hard")).toBe(1.7));
+  it("Berserk (犠牲系) は 3.0", () =>
+    expect(attackDamageModifier(excalibur, "special")).toBe(3.0));
+  it("Vjaya は 5.1", () => {
     const vjaya: Weapon = { ...excalibur, name: "Vjaya", special: "Vjaya" };
-    expect(attackDamageModifier(vjaya, "special")).toBe(5.67);
+    expect(attackDamageModifier(vjaya, "special")).toBe(5.1);
   });
-  it("状態異常系特殊は 0.56", () => {
+  it("状態異常系特殊は 0.5", () => {
     const hellSaber: Weapon = { ...excalibur, name: "Hell Saber", special: "Hell" };
-    expect(attackDamageModifier(hellSaber, "special")).toBe(0.56);
+    expect(attackDamageModifier(hellSaber, "special")).toBe(0.5);
   });
   it("特殊なし武器の special はエラー", () => {
     const plain: Weapon = { ...excalibur, special: null };
@@ -73,26 +73,34 @@ describe("attackDamageModifier", () => {
 
 describe("effectiveAtp", () => {
   it("min < avg < max", () => {
-    const min = effectiveAtp(player, excalibur, {}, 0, 1);
+    const min = effectiveAtp(player, excalibur, {}, 0);
     const avg = effectiveAtp(player, excalibur);
-    const max = effectiveAtp(player, excalibur, {}, 1, 6);
+    const max = effectiveAtp(player, excalibur, {}, 1);
     expect(min).toBeLessThan(avg);
     expect(avg).toBeLessThan(max);
-    // max = (1146 - 6 + 50) + 900 + 6 = ベースATP + 武器
-    expect(max).toBeCloseTo(1146 - 6 + 50 + 900 + 6);
+    // min = classMin + 武器min = (1146 - 5) + 900
+    expect(min).toBeCloseTo(1146 - 5 + 900);
+    // max = classMax + 武器min + 武器スプレッド = 1146 + 900 + 50
+    expect(max).toBeCloseTo(1146 + 900 + 50);
   });
 
-  it("シフタはキャラATP部分にのみ乗る", () => {
-    const noBuff = effectiveAtp(player, excalibur, {}, 0, 1);
-    const buffed = effectiveAtp(player, excalibur, { shiftaLevel: 30 }, 0, 1);
-    const baseAtp = player.baseAtp - 6; // Pvar,max
-    expect(buffed - noBuff).toBeCloseTo(baseAtp * 0.477);
+  it("シフタはキャラATP部分にのみ乗る (最小ロール)", () => {
+    const noBuff = effectiveAtp(player, excalibur, {}, 0);
+    const buffed = effectiveAtp(player, excalibur, { shiftaLevel: 30 }, 0);
+    const classMin = player.baseAtp - 5; // Pvar,max - 1
+    expect(buffed - noBuff).toBeCloseTo(classMin * 0.477);
+  });
+
+  it("シフタの最大ロールはクラス分散と武器スプレッドにも乗る (psostats 準拠)", () => {
+    const noBuff = effectiveAtp(player, excalibur, {}, 1);
+    const buffed = effectiveAtp(player, excalibur, { shiftaLevel: 30 }, 1);
+    // classMax × SA + (WSpread + クラス分散) × SA
+    expect(buffed - noBuff).toBeCloseTo(1146 * 0.477 + (50 + 5) * 0.477);
   });
 
   it("属性%は武器ATP(min+grind)に乗る", () => {
     const withAttr = { ...excalibur, attributePercent: 50 };
-    const diff =
-      effectiveAtp(player, withAttr, {}, 0, 1) - effectiveAtp(player, excalibur, {}, 0, 1);
+    const diff = effectiveAtp(player, withAttr, {}, 0) - effectiveAtp(player, excalibur, {}, 0);
     expect(diff).toBeCloseTo(900 * 0.5);
   });
 });

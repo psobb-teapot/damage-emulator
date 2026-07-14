@@ -1,9 +1,4 @@
-import {
-  ATTACK_DAMAGE_MODIFIER,
-  CRITICAL_MULTIPLIER,
-  DAMAGE_VARIANCE_FACTOR,
-  PVAR_MAX,
-} from "./constants.js";
+import { ATTACK_DAMAGE_MODIFIER, CRITICAL_MULTIPLIER } from "./constants.js";
 import { resolveSpecial } from "./data/specials.js";
 import { effectiveAtp, effectiveDfp } from "./stats.js";
 import type {
@@ -17,8 +12,8 @@ import type {
 
 /**
  * 攻撃タイプ (と武器の特殊) からダメージ倍率を求める。
- * Normal 1.0 / Hard 1.89 / Special 0.56、
- * 犠牲系 3.33 (Vjaya 5.67)、Heavy 相当威力の例外武器は 1.89。
+ * 共通係数 0.9 折り込み済み: Normal 0.9 / Hard 1.7 / Special 0.5、
+ * 犠牲系 3.0 (Vjaya 5.1)、Heavy 相当威力の例外武器は 1.7。
  */
 export function attackDamageModifier(weapon: Weapon, attackType: AttackType): number {
   if (attackType !== "special") return ATTACK_DAMAGE_MODIFIER[attackType];
@@ -31,10 +26,13 @@ export function attackDamageModifier(weapon: Weapon, attackType: AttackType): nu
   return ATTACK_DAMAGE_MODIFIER.special;
 }
 
-/** Damage = [(ATPeff − DFPeff) / 5] × 0.9 × 攻撃修正 (切り捨て、下限 0) */
+/**
+ * Damage = floor(max(0, (ATPeff − DFPeff) / 5) × 攻撃修正)
+ * (修正値は 0.9 折り込み済み。psostats.com と同一の式)
+ */
 export function rawDamage(atpEff: number, dfpEff: number, modifier: number): number {
-  const dmg = Math.floor(((atpEff - dfpEff) / 5) * DAMAGE_VARIANCE_FACTOR * modifier);
-  return Math.max(0, dmg);
+  const base = Math.max(0, (atpEff - dfpEff) / 5);
+  return Math.floor(base * modifier);
 }
 
 /**
@@ -50,11 +48,14 @@ export function damageRange(
 ): DamageRange {
   const modifier = attackDamageModifier(weapon, attackType);
   const dfpEff = effectiveDfp(enemy, context);
-  const pvarMax = PVAR_MAX[player.classCategory ?? "hunter"];
+  // CCA系ミニボス (Gi Gue, Mericarol 等) には武器の属性%が乗らない
+  const w = enemy.ccaMiniboss && weapon.attributePercent
+    ? { ...weapon, attributePercent: 0 }
+    : weapon;
   return {
-    min: rawDamage(effectiveAtp(player, weapon, context, 0, 1), dfpEff, modifier),
-    avg: rawDamage(effectiveAtp(player, weapon, context), dfpEff, modifier),
-    max: rawDamage(effectiveAtp(player, weapon, context, 1, pvarMax), dfpEff, modifier),
+    min: rawDamage(effectiveAtp(player, w, context, 0), dfpEff, modifier),
+    avg: rawDamage(effectiveAtp(player, w, context, 0.5), dfpEff, modifier),
+    max: rawDamage(effectiveAtp(player, w, context, 1), dfpEff, modifier),
   };
 }
 

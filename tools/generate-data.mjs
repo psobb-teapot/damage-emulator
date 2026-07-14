@@ -122,6 +122,7 @@ for (const [key, e] of Object.entries(enemies)) {
   ];
   if (e.type === "Machine") fields.push(`isMachine: true`);
   if (BOSS_PATTERN.test(e.name)) fields.push(`isBoss: true`);
+  if (e.ccaMiniboss) fields.push(`ccaMiniboss: true`);
   enemyEntries.push(`  ${JSON.stringify(key)}: { ${fields.join(", ")} },`);
 }
 
