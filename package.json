@@ -1,0 +1,29 @@
+{
+  "name": "pso-damage-emulator",
+  "version": "0.1.0",
+  "description": "PSOBB combo/damage calculator engine (psostats.com/combo-calculator 相当) based on wiki.pioneer2.net formulas",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "demo": "tsx demo/demo.ts"
+  },
+  "keywords": [
+    "pso",
+    "phantasy-star-online",
+    "damage-calculator",
+    "combo-calculator"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vitest": "^3.0.0"
+  }
+}
