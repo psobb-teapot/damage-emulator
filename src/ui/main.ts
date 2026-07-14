@@ -1,4 +1,5 @@
 import { simulateCombo } from "../combo.js";
+import { BARRIERS, FRAMES } from "../data/armor.gen.js";
 import { CLASSES } from "../data/classes.js";
 import { ENEMIES } from "../data/enemies.js";
 import { SPECIALS } from "../data/specials.js";
@@ -66,13 +67,48 @@ function fillSelect(el: HTMLSelectElement, entries: [string, string][]): void {
   }
 }
 
+/** optgroup 付きセレクト。groups: グループ名 → [value, label][] */
+function fillGroupedSelect(
+  el: HTMLSelectElement,
+  head: [string, string][],
+  groups: Map<string, [string, string][]>,
+): void {
+  el.innerHTML = "";
+  for (const [value, label] of head) {
+    const opt = document.createElement("option");
+    opt.value = value;
+    opt.textContent = label;
+    el.appendChild(opt);
+  }
+  for (const [groupLabel, entries] of groups) {
+    const og = document.createElement("optgroup");
+    og.label = groupLabel;
+    for (const [value, label] of entries) {
+      const opt = document.createElement("option");
+      opt.value = value;
+      opt.textContent = label;
+      og.appendChild(opt);
+    }
+    el.appendChild(og);
+  }
+}
+
 fillSelect(select("cls"), Object.keys(CLASSES).map((k) => [k, k]));
 select("cls").value = "HUcast";
 
-fillSelect(select("wpPreset"), [
-  ["custom", "カスタム"],
-  ...Object.keys(WEAPONS).map((k): [string, string] => [k, k]),
-]);
+// 武器: 種別ごとにグループ化
+{
+  const groups = new Map<string, [string, string][]>();
+  for (const kind of Object.keys(WEAPON_KIND_LABELS) as WeaponKind[]) {
+    groups.set(WEAPON_KIND_LABELS[kind].replace(/ \(.*\)$/, ""), []);
+  }
+  for (const [key, w] of Object.entries(WEAPONS)) {
+    const label = WEAPON_KIND_LABELS[w.kind].replace(/ \(.*\)$/, "");
+    groups.get(label)!.push([key, `${key}${w.special ? ` [${typeof w.special === "string" ? w.special : w.special.name}]` : ""}`]);
+  }
+  for (const [k, v] of groups) if (v.length === 0) groups.delete(k);
+  fillGroupedSelect(select("wpPreset"), [["custom", "カスタム"]], groups);
+}
 
 fillSelect(
   select("wpKind"),
@@ -84,10 +120,20 @@ fillSelect(select("wpSpecial"), [
   ...Object.keys(SPECIALS).map((k): [string, string] => [k, k]),
 ]);
 
-fillSelect(select("enPreset"), [
-  ["custom", "カスタム"],
-  ...Object.keys(ENEMIES).map((k): [string, string] => [k, k]),
-]);
+// 敵: エピソード+エリアごとにグループ化
+{
+  const groups = new Map<string, [string, string][]>();
+  for (const [key, e] of Object.entries(ENEMIES)) {
+    const label = `Ep${e.episode} ${e.location ?? "?"}`;
+    if (!groups.has(label)) groups.set(label, []);
+    groups.get(label)!.push([key, key]);
+  }
+  fillGroupedSelect(select("enPreset"), [["custom", "カスタム"]], groups);
+}
+
+const noneFirst = (keys: string[]) => ["None", ...keys.filter((k) => k !== "None").sort()];
+fillSelect(select("frame"), noneFirst(Object.keys(FRAMES)).map((k) => [k, k]));
+fillSelect(select("barrier"), noneFirst(Object.keys(BARRIERS)).map((k) => [k, k]));
 
 /* ---------- コンボビルダー ---------- */
 
@@ -139,8 +185,13 @@ function applyWeaponPreset(): void {
   input("wpAtpMin").value = String(preset.atpMin);
   input("wpAtpMax").value = String(preset.atpMax);
   input("wpAta").value = String(preset.ata);
-  input("wpGrind").value = String(preset.grind ?? 0);
+  // グラインドは上限値をデフォルトに (最大強化前提)
+  input("wpGrind").value = String(preset.grind ?? preset.maxGrind ?? 0);
+  input("wpGrind").max = String(preset.maxGrind ?? 250);
   input("wpAttr").value = String(preset.attributePercent ?? 0);
+  input("wpAttr").max = String(preset.maxAttributePercent ?? 100);
+  input("wpHit").value = String(preset.hitPercent ?? 0);
+  input("wpHit").max = String(preset.maxHitPercent ?? 100);
   input("wpHits").value = preset.hitsPerAttack != null ? String(preset.hitsPerAttack) : "";
   select("wpSpecial").value =
     typeof preset.special === "string" ? preset.special : (preset.special?.name ?? "");
@@ -189,6 +240,7 @@ function readInput(): ComboInput {
     atpMax: Math.max(num("wpAtpMin"), num("wpAtpMax")),
     ata: num("wpAta"),
     grind: num("wpGrind"),
+    hitPercent: num("wpHit"),
     attributePercent: num("wpAttr"),
     special: specialKey || null,
     hitsPerAttack: input("wpHits").value ? num("wpHits", 1) : undefined,
@@ -197,14 +249,18 @@ function readInput(): ComboInput {
     specialEffectiveness: Number(select("wpEff").value),
   };
 
+  const frame = FRAMES[select("frame").value] ?? { atp: 0, ata: 0 };
+  const barrier = BARRIERS[select("barrier").value] ?? { atp: 0, ata: 0 };
+
   return {
     player: {
       baseAtp: num("baseAtp"),
       baseAta: num("baseAta"),
       lck: num("lck"),
       classCategory: cls?.category ?? "hunter",
-      armorAtp: num("armorAtp"),
-      armorAta: num("armorAta"),
+      isAndroid: cls?.isAndroid ?? false,
+      armorAtp: frame.atp + barrier.atp + num("armorAtp"),
+      armorAta: frame.ata + barrier.ata + num("armorAta"),
       maxHp: cls ? (input("useMax").checked ? cls.max.hp : cls.lv200.hp) : undefined,
       maxTp: cls ? (input("useMax").checked ? cls.max.tp : cls.lv200.tp) : undefined,
     },
@@ -359,7 +415,7 @@ select("enPreset").addEventListener("change", () => {
 
 // 武器・敵の個別フィールドを編集したらプリセットを「カスタム」へ
 const weaponFieldIds = [
-  "wpKind", "wpAtpMin", "wpAtpMax", "wpAta", "wpGrind", "wpAttr",
+  "wpKind", "wpAtpMin", "wpAtpMax", "wpAta", "wpGrind", "wpAttr", "wpHit",
   "wpHits", "wpSpecial", "wpEff", "wpHeavyAcc", "wpHeavyDmg",
 ];
 for (const id of weaponFieldIds) {
@@ -389,6 +445,6 @@ document.querySelector("main")!.addEventListener("change", render);
 applyClassPreset();
 select("wpPreset").value = "Excalibur";
 applyWeaponPreset();
-select("enPreset").value = "Bartle (Ultimate)";
+select("enPreset").value = "Bartle";
 applyEnemyPreset();
 render();

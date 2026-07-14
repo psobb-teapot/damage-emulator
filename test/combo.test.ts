@@ -5,7 +5,7 @@ import type { ComboInput } from "../src/index.js";
 const base: ComboInput = {
   player: playerFromClass("HUcast", { useMaxStats: true, lck: 100 }),
   weapon: WEAPONS["Excalibur"]!,
-  enemy: ENEMIES["Bartle (Ultimate)"]!,
+  enemy: ENEMIES["Bartle"]!,
   attacks: [{ type: "hard" }, { type: "hard" }, { type: "hard" }],
 };
 
@@ -62,7 +62,7 @@ describe("simulateCombo", () => {
     expect(special.resourceCost).toContain("HP");
   });
 
-  it("Demon's は ATP ダメージ 0 で、期待値は削りのみ", () => {
+  it("Demon's は ATP ダメージ 0 で、期待値は削りのみ (HUcast は Ultimate で 45%)", () => {
     const demons = simulateCombo({
       ...base,
       weapon: { ...base.weapon, special: "Demon's" },
@@ -70,9 +70,11 @@ describe("simulateCombo", () => {
     });
     expect(demons.hits[0]!.damage.avg).toBeGreaterThan(0); // 表示用レンジは参考値
     expect(demons.hits[0]!.avgWithCritical).toBe(0); // ATP ダメージは 0
-    // 期待削り = 命中率 × 発動50% × HP×75%
+    // アンドロイド (HUcast) が Ultimate で使うので削りは 45%
+    expect(demons.hits[0]!.special?.hpCutFraction).toBeCloseTo(0.45);
+    // 期待削り = 命中率 × 発動50% × HP×45%
     const acc = demons.hits[0]!.accuracy / 100;
-    const expectedCut = base.enemy.hp * 0.75 * 0.5 * acc;
+    const expectedCut = base.enemy.hp * 0.45 * 0.5 * acc;
     expect(demons.totals.expected).toBeCloseTo(expectedCut, 0);
   });
 

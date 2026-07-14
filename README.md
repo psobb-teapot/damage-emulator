@@ -14,7 +14,10 @@ TypeScript モジュールとして提供します。
 - シフタ / ザルア、凍結・麻痺による敵 EVP 低下、V501/V502、Smartlink・距離ペナルティ
 - クリティカル (LCK 依存) を織り込んだ期待ダメージ
 - 命中・クリティカル・特殊発動を確率分布として畳み込んだ **キル確率** と **期待残りHP**
-- 全12クラスの Lv200 / 最大ステータスプリセット、サンプル武器・敵データ
+- **全123武器** (ATP範囲・ATA・最大グラインド・Hit%/属性上限・特殊・段ごとのヒット数)
+- **全135敵** (Ultimate 全エリア: Ep1/Ep2/Ep4、種族・全耐性・ボスフラグ付き)
+- **フレーム8種 / バリア10種** (ATP/ATA 補正) + ユニット等の追加値入力
+- 全12クラスの Lv200 / 最大ステータスプリセット
 
 ## 使い方
 
@@ -83,13 +86,26 @@ const chargeVulcan = makeWeapon({
 | クリティカル | 発生率 `min(LCK,100)/5` %、ダメージ ×1.5 |
 | 特殊発動率 | `(Power − 敵EDK/ESP) × 特殊効果係数 × ユニット倍率` (V501/V502 で ×1.5、即死系は V502 で ×2。凍結はキャップ 40%) |
 
+## データについて
+
+武器・敵・防具のデータは [psostats.com/combo-calculator](https://psostats.com/combo-calculator)
+に埋め込まれたデータのスナップショット (`data/raw/*.json`) から生成しています
+(元データは Ephinea PSOBB / wiki.pioneer2.net 由来)。
+
+- 敵データは **Ultimate 難易度・マルチプレイ時**の値。他難易度は `Enemy` 型で自由に定義可能。
+- 再生成: `node tools/generate-data.mjs` → `src/data/*.gen.ts`
+- 武器固有特殊 (Dark Flow / TJS / Orotiagito / Raikiri / Lavis 系 / Mille Marteaux 等) の
+  ダメージ倍率は psostats 実装から係数 0.9 の折り込みを外した値
+  (例: Dark Flow 1.7 ÷ 0.9 ≒ 1.89)。
+
 ## 実装上の仮定 (wiki に明記がない箇所)
 
 - **Devil's / Demon's** は ATP ダメージを与えず、発動時のみ現在HPを削る (発動率 50%)。
+  アンドロイド (HUcast/HUcaseal/RAcast/RAcaseal) が Ultimate で使うと 20%/45% に減少
+  (psostats 実装準拠)。
 - **Hell 系**は不発時に通常の特殊ダメージ (0.56x) を与える。
 - **HP吸収** (Draw 系) の吸収量は「Power% × 自分の最大HP」を難易度上限でキャップした値として扱う (TP 吸収は wiki 記載どおり最大TP基準)。
 - キル確率の計算では、1ヒットのダメージを平均値に固定した確率分布 (命中/クリティカル/特殊発動の分岐) を用いる。武器ATPの乱数幅による揺らぎは分布に含めない。
-- サンプルの敵データはマルチプレイ時の値。
 
 ## 構成
 
@@ -104,8 +120,12 @@ src/
 ├── combo.ts        # コンボシミュレーション (キル確率の分布計算)
 ├── ui/             # ブラウザUI (Vite + vanilla TS)
 └── data/
-    ├── classes.ts  # 全12クラスの Lv200 / 最大ステータス
-    ├── specials.ts # 特殊攻撃の定義テーブル
-    ├── weapons.ts  # サンプル武器
-    └── enemies.ts  # サンプル敵
+    ├── classes.ts     # 全12クラスの Lv200 / 最大ステータス
+    ├── specials.ts    # 特殊攻撃の定義テーブル (固有特殊含む)
+    ├── weapons.gen.ts # 全123武器 (自動生成)
+    ├── enemies.gen.ts # 全135敵 (自動生成)
+    └── armor.gen.ts   # フレーム/バリア (自動生成)
+
+data/raw/           # psostats 由来の生データ (スナップショット)
+tools/generate-data.mjs  # 生データ → src/data/*.gen.ts の生成
 ```

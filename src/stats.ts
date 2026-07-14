@@ -57,7 +57,7 @@ export function effectiveEvp(enemy: Enemy, context: CombatContext = {}): number 
   return enemy.evp * statusMod * (1 - zalure);
 }
 
-/** 合計ATA (キャラ + 武器 + 防具) */
+/** 合計ATA (キャラ + 武器 + Hit% + 防具) */
 export function totalAta(player: PlayerStats, weapon: Weapon): number {
-  return player.baseAta + weapon.ata + (player.armorAta ?? 0);
+  return player.baseAta + weapon.ata + (weapon.hitPercent ?? 0) + (player.armorAta ?? 0);
 }

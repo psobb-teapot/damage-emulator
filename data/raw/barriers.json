@@ -1,0 +1,42 @@
+{
+ "None": {
+  "atp": 0,
+  "ata": 0
+ },
+ "Red Ring": {
+  "atp": 20,
+  "ata": 20
+ },
+ "Ranger Wall": {
+  "atp": 0,
+  "ata": 20
+ },
+ "Kasami Bracer": {
+  "atp": 35,
+  "ata": 0
+ },
+ "Combat Gear": {
+  "atp": 35,
+  "ata": 0
+ },
+ "Safety Heart": {
+  "atp": 0,
+  "ata": 0
+ },
+ "S-Parts ver2.01": {
+  "atp": 0,
+  "ata": 15
+ },
+ "Black Ring (1)": {
+  "atp": 50,
+  "ata": 0
+ },
+ "Black Ring (2)": {
+  "atp": 100,
+  "ata": 0
+ },
+ "Black Ring (3)": {
+  "atp": 150,
+  "ata": 0
+ }
+}

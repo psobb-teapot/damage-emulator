@@ -1,7 +1,7 @@
 import {
   EXP_STEAL_CAP,
   FREEZE_CHANCE_CAP,
-  HP_CUT_MACHINE_ULTIMATE,
+  HP_CUT_ANDROID_ULTIMATE,
   HP_DRAIN_CAP,
   TP_DRAIN_CAP,
 } from "./constants.js";
@@ -25,15 +25,16 @@ function unitBoost(context: CombatContext, isInstantKill: boolean): number {
 
 /**
  * Devil's/Demon's が現在HPから削る割合 (0-1)。
- * Ultimate の機械系には 20%/45% に減少。
+ * アンドロイドが Ultimate で使うと 20%/45% に減少。
  */
 export function hpCutFraction(
   specialName: string,
   power: number,
+  player: PlayerStats,
   enemy: Enemy,
 ): number {
-  if (enemy.isMachine && enemy.difficulty === "ultimate") {
-    const reduced = HP_CUT_MACHINE_ULTIMATE[specialName];
+  if (player.isAndroid && (enemy.difficulty ?? "ultimate") === "ultimate") {
+    const reduced = HP_CUT_ANDROID_ULTIMATE[specialName];
     if (reduced != null) return reduced / 100;
   }
   return power / 100;
@@ -104,7 +105,7 @@ export function evaluateSpecial(
         return { name: special.name, category: special.category, activationChance: 0, effect: "ボスには無効" };
       }
       const chance = clampPct(50 * unitBoost(context, false));
-      const fraction = hpCutFraction(special.name, power, enemy);
+      const fraction = hpCutFraction(special.name, power, player, enemy);
       return {
         name: special.name,
         category: special.category,
@@ -157,6 +158,15 @@ export function evaluateSpecial(
         category: special.category,
         activationChance: 100,
         effect: "固定属性ダメージ (簡易対応: 通常ダメージのみ計上)",
+      };
+    }
+    case "unique": {
+      return {
+        name: special.name,
+        category: special.category,
+        effect: `武器固有特殊: ダメージ ×${special.damageModifier ?? 1}${
+          special.costPerSwing ? `、${special.costPerSwing}` : ""
+        }`,
       };
     }
   }

@@ -15,7 +15,7 @@ const rifle: Weapon = {
   atpMin: 240,
   atpMax: 250,
   ata: 60,
-  special: "Snow (100% Freeze)",
+  special: "Frozen Shooter",
   specialUsesHeavyAccuracy: true,
 };
 

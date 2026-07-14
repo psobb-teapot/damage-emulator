@@ -100,6 +100,7 @@ export function playerFromClass(
     baseAta: stats.ata,
     lck: options.lck ?? 100,
     classCategory: cls.category,
+    isAndroid: cls.isAndroid,
     armorAtp: options.armorAtp ?? 0,
     armorAta: options.armorAta ?? 0,
     maxHp: stats.hp,

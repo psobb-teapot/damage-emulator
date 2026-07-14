@@ -1,0 +1,98 @@
+{
+ "FOmar": {
+  "name": "FOmar",
+  "maxShifta": 30,
+  "minAtp": 1000,
+  "maxAtp": 1002,
+  "ata": 163,
+  "animation": "male"
+ },
+ "FOmarl": {
+  "name": "FOmarl",
+  "maxShifta": 30,
+  "minAtp": 870,
+  "maxAtp": 872,
+  "ata": 170,
+  "animation": "female"
+ },
+ "FOnewearl": {
+  "name": "FOnewearl",
+  "maxShifta": 30,
+  "minAtp": 581,
+  "maxAtp": 583,
+  "ata": 186,
+  "animation": "female"
+ },
+ "FOnewm": {
+  "name": "FOnewm",
+  "maxShifta": 30,
+  "minAtp": 812,
+  "maxAtp": 814,
+  "ata": 180,
+  "animation": "male"
+ },
+ "HUcaseal": {
+  "name": "HUcaseal",
+  "maxShifta": 3,
+  "minAtp": 1296,
+  "maxAtp": 1301,
+  "ata": 218,
+  "animation": "female"
+ },
+ "HUcast": {
+  "name": "HUcast",
+  "maxShifta": 3,
+  "minAtp": 1634,
+  "maxAtp": 1639,
+  "ata": 191,
+  "animation": "male"
+ },
+ "HUmar": {
+  "name": "HUmar",
+  "maxShifta": 3,
+  "minAtp": 1392,
+  "maxAtp": 1397,
+  "ata": 200,
+  "animation": "male"
+ },
+ "HUnewearl": {
+  "name": "HUnewearl",
+  "maxShifta": 20,
+  "minAtp": 1232,
+  "maxAtp": 1237,
+  "ata": 199,
+  "animation": "female"
+ },
+ "RAcaseal": {
+  "name": "RAcaseal",
+  "maxShifta": 0,
+  "minAtp": 1171,
+  "maxAtp": 1175,
+  "ata": 231,
+  "animation": "female"
+ },
+ "RAcast": {
+  "name": "RAcast",
+  "maxShifta": 0,
+  "minAtp": 1346,
+  "maxAtp": 1350,
+  "ata": 224,
+  "animation": "male"
+ },
+ "RAmar": {
+  "name": "RAmar",
+  "maxShifta": 15,
+  "minAtp": 1256,
+  "maxAtp": 1260,
+  "ata": 249,
+  "animation": "male"
+ },
+ "RAmarl": {
+  "name": "RAmarl",
+  "maxShifta": 20,
+  "minAtp": 1141,
+  "maxAtp": 1145,
+  "ata": 241,
+  "animation": "female"
+ }
+}

@@ -83,9 +83,14 @@ describe("evaluateSpecial", () => {
     expect(r?.hpCutFraction).toBeCloseTo(0.75);
   });
 
-  it("Demon's: Ultimate の機械系には 45%", () => {
-    const r = evaluateSpecial(player, weaponWith("Demon's"), { ...enemy, isMachine: true });
+  it("Demon's: アンドロイドが Ultimate で使うと 45%", () => {
+    const r = evaluateSpecial({ ...player, isAndroid: true }, weaponWith("Demon's"), enemy);
     expect(r?.hpCutFraction).toBeCloseTo(0.45);
+  });
+
+  it("Devil's: アンドロイドが Ultimate で使うと 20%", () => {
+    const r = evaluateSpecial({ ...player, isAndroid: true }, weaponWith("Devil's"), enemy);
+    expect(r?.hpCutFraction).toBeCloseTo(0.2);
   });
 
   it("Gush: HP吸収は min(17% × maxHp, 120) = 120", () => {

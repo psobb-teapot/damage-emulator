@@ -95,8 +95,11 @@ export const EXP_STEAL_CAP: Record<Difficulty, number> = {
   ultimate: 80,
 };
 
-/** Ultimate の機械系に対する Devil's/Demon's の削り割合 (通常 50%/75% → 20%/45%) */
-export const HP_CUT_MACHINE_ULTIMATE: Record<string, number> = {
+/**
+ * アンドロイド (HUcast/HUcaseal/RAcast/RAcaseal) が Ultimate で使う
+ * Devil's/Demon's の削り割合 (通常 50%/75% → 20%/45%)
+ */
+export const HP_CUT_ANDROID_ULTIMATE: Record<string, number> = {
   "Devil's": 20,
   "Demon's": 45,
 };

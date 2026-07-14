@@ -8,4 +8,5 @@ export { simulateCombo } from "./combo.js";
 export { SPECIALS, resolveSpecial } from "./data/specials.js";
 export { WEAPONS, makeWeapon } from "./data/weapons.js";
 export { ENEMIES } from "./data/enemies.js";
+export { FRAMES, BARRIERS, type ArmorStats } from "./data/armor.gen.js";
 export { CLASSES, playerFromClass, type ClassStats } from "./data/classes.js";

@@ -45,7 +45,8 @@ export type SpecialCategory =
   | "expSteal" // Master's/Lord's/King's
   | "hpCut" // Devil's/Demon's
   | "sacrificial" // Charge/Spirit/Berserk (+ Vjaya)
-  | "elemental"; // Heat/Fire 系 (固定ダメージ、簡易対応)
+  | "elemental" // Heat/Fire 系 (固定ダメージ、簡易対応)
+  | "unique"; // 武器固有 (Dark Flow, TJS, Orotiagito など、ダメージ倍率のみ)
 
 export interface SpecialDefinition {
   name: string;
@@ -74,8 +75,16 @@ export interface Weapon {
   ata: number;
   /** グラインド値 (ATP +2/grind) */
   grind?: number;
+  /** この武器のグラインド上限 (情報用) */
+  maxGrind?: number;
+  /** Hit% 属性 (ATA に加算される) */
+  hitPercent?: number;
+  /** Hit% の上限 (情報用) */
+  maxHitPercent?: number;
   /** 対象の敵に有効な属性値 % (0-100)。EQATP に (1 + attr/100) を乗算 */
   attributePercent?: number;
+  /** 属性値の上限 (情報用) */
+  maxAttributePercent?: number;
   /** 特殊攻撃名 (data/specials.ts のキー、またはカスタム定義) */
   special?: string | SpecialDefinition | null;
   /** 1回の攻撃入力あたりのヒット数 (未指定なら武器種のデフォルト) */
@@ -101,6 +110,8 @@ export interface PlayerStats {
   baseAta: number;
   lck: number;
   classCategory?: ClassCategory;
+  /** アンドロイド (HUcast/HUcaseal/RAcast/RAcaseal)。Ultimate で Devil's/Demon's の削り量が低下 */
+  isAndroid?: boolean;
   /** フレーム/バリア/ユニットの ATP 合計 */
   armorAtp?: number;
   /** フレーム/バリア/ユニットの ATA 合計 */
@@ -119,12 +130,16 @@ export interface Enemy {
   edk?: number;
   /** 状態異常耐性 (凍結・麻痺・混乱の発動率計算に使用) */
   esp?: number;
-  /** 機械系 (Ultimate で Devil's/Demon's の削り量が低下) */
+  /** 機械系 (麻痺無効) */
   isMachine?: boolean;
   /** ボス (麻痺・即死などが無効) */
   isBoss?: boolean;
   difficulty?: Difficulty;
   episode?: 1 | 2 | 4;
+  /** 出現エリア (Forest, Caves, ... 情報用) */
+  location?: string;
+  /** 種族 (Native / A.Beast / Machine / Dark 情報用) */
+  enemyType?: string;
 }
 
 /** 戦闘状況 (バフ・デバフ・ユニット・距離など) */

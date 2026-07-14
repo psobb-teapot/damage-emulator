@@ -11,10 +11,12 @@ import {
   ENEMIES,
 } from "../src/index.js";
 
+const enemy = ENEMIES["Bartle"]!;
+
 const result = simulateCombo({
   player: playerFromClass("HUcast", { useMaxStats: true, lck: 100 }),
   weapon: WEAPONS["Excalibur"]!,
-  enemy: ENEMIES["Bartle (Ultimate)"]!,
+  enemy,
   attacks: [{ type: "hard" }, { type: "hard" }, { type: "special" }],
   context: { shiftaLevel: 30, zalureLevel: 30 },
 });
@@ -35,7 +37,7 @@ for (const h of result.hits) {
 }
 console.log("");
 console.log(`合計 (全ヒット時): min ${result.totals.min} / avg ${result.totals.avg} / max ${result.totals.max}`);
-console.log(`期待合計ダメージ : ${result.totals.expected} (敵HP ${ENEMIES["Bartle (Ultimate)"]!.hp})`);
+console.log(`期待合計ダメージ : ${result.totals.expected} (敵HP ${enemy.hp})`);
 console.log(`キル確率         : ${(result.killProbability * 100).toFixed(2)}%`);
 console.log(`期待残りHP       : ${result.expectedRemainingHp}`);
 if (result.resourceCost) console.log(`コスト           : ${result.resourceCost}`);
