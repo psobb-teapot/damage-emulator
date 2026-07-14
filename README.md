@@ -93,9 +93,20 @@ const chargeVulcan = makeWeapon({
 ## psostats.com との一致検証
 
 実際の psostats.com/combo-calculator を Playwright で操作した結果と
-本エンジンの出力を突き合わせるパリティテストを `test/psostats-parity.test.ts` に収録
-(実測日 2026-07-15、10 パターン / クラス・武器・特殊・バフ・状態異常・最大ロールを網羅)。
-全パターンでダメージ・命中率・合計値が一致する。
+本エンジンの出力を突き合わせるパリティテストを収録 (実測日 2026-07-15):
+
+- `test/psostats-parity.test.ts` — 28 パターンの個別検証。
+  全12クラス、ダメージ倍率全種 (N/H/犠牲系/Vjaya/Orotiagito/Raikiri/Lavis系/
+  Dark Flow/TJS/Frozen Shooter/Mille Marteaux/Arrest)、
+  Demon's/Devil's ×(アンドロイド/非アンドロイド)、シフタ/ザルア、
+  凍結・麻痺・同時付与、最大ロール、属性%/Hit%/グラインド (ES武器の+250含む)、
+  フレーム/バリアATP、CCAミニボス、特殊アニメーション武器
+  (Master Raven 3hit / L&K38 5hit / Last Swan 3hit)、TJS必中を網羅。
+- `test/psostats-all-enemies.test.ts` — psostats に**全135敵**を表示させた
+  結果テーブルとの一括照合 (N/H/S ダメージ・命中率・合計・総合命中率)。
+
+全パターンでダメージ・命中率・合計値が一致する (命中率は psostats の
+floor 2桁表示に対し浮動小数点の丸め差 ±0.01 まで許容)。
 
 psostats と意図的に異なる点:
 - **Hell 系・状態異常系の発動率**: psostats は発動率を計算しない (本エンジンは wiki の式で算出)

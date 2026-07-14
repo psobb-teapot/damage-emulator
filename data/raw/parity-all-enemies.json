@@ -1,0 +1,2315 @@
+{
+ "config": {
+  "cls": "HUcast",
+  "weapon": "Excalibur",
+  "hitPercent": 50,
+  "attributePercent": 0,
+  "attacks": [
+   "normal",
+   "hard",
+   "special"
+  ],
+  "maxRoll": false,
+  "ataInput": 301,
+  "minAtpInput": 900,
+  "maxAtpInput": 950,
+  "measuredAt": "2026-07-15"
+ },
+ "rows": [
+  {
+   "name": "Bartle",
+   "total": 2165,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 348,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 657,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1160,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Ba Boota",
+   "total": 1900,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 305,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 577,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1018,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Barble",
+   "total": 2150,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 345,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 653,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1152,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Boota",
+   "total": 2062,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 331,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 626,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1105,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Dorphon",
+   "total": 1920,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 308,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 583,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1029,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Dorphon Eclair",
+   "total": 1875,
+   "overallAcc": 95.74,
+   "normal": {
+    "dmg": 301,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 569,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1005,
+    "acc": 95.74
+   }
+  },
+  {
+   "name": "El Rappy (Forest)",
+   "total": 2137,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 343,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 649,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1145,
+    "acc": 100
+   }
+  },
+  {
+   "name": "El Rappy (Temple)",
+   "total": 2234,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 359,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 678,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1197,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Gee",
+   "total": 2205,
+   "overallAcc": 96.34,
+   "normal": {
+    "dmg": 354,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 669,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1182,
+    "acc": 96.34
+   }
+  },
+  {
+   "name": "Gi Gue",
+   "total": 1760,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 283,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 534,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 943,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Gibbles",
+   "total": 1999,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 321,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 607,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1071,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Gol Dragon",
+   "total": 2063,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 331,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 626,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1106,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Gulgus (Forest)",
+   "total": 2109,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 339,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 640,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1130,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Gulgus (Space)",
+   "total": 2118,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 340,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 643,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1135,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Gulgus-Gue (Forest)",
+   "total": 2094,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 336,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 636,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1122,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Gulgus-Gue (Space)",
+   "total": 2079,
+   "overallAcc": 83.54,
+   "normal": {
+    "dmg": 334,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 631,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1114,
+    "acc": 83.54
+   }
+  },
+  {
+   "name": "Hildelt (Forest)",
+   "total": 2079,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 334,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 631,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1114,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Hildelt (Temple)",
+   "total": 2165,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 348,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 657,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1160,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Hildetorr (Forest)",
+   "total": 2165,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 348,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 657,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1160,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Hildetorr (Temple)",
+   "total": 2277,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 366,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 691,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1220,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Love Rappy (Temple)",
+   "total": 1960,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 315,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 595,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1050,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Mothvert (Forest)",
+   "total": 2165,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 348,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 657,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1160,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Mothvert (Temple)",
+   "total": 2277,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 366,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 691,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1220,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Mothvist (Forest)",
+   "total": 2165,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 348,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 657,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1160,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Mothvist (Temple)",
+   "total": 2277,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 366,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 691,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1220,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Pal Rappy (Forest)",
+   "total": 2137,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 343,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 649,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1145,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Pazuzu (Crater)",
+   "total": 1899,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 305,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 576,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1018,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Pazuzu (Desert)",
+   "total": 1792,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 288,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 544,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 960,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Sand Rappy (Crater)",
+   "total": 2101,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 337,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 638,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1126,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Sand Rappy (Desert)",
+   "total": 1976,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 317,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 600,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1059,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Satellite Lizard (Crater)",
+   "total": 1961,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 315,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 595,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1051,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Satellite Lizard (Desert)",
+   "total": 1670,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 268,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 507,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 895,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Sil Dragon",
+   "total": 2277,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 366,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 691,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1220,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Tollaw",
+   "total": 1997,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 321,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 606,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1070,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Ul Gibbon",
+   "total": 2171,
+   "overallAcc": 65.51,
+   "normal": {
+    "dmg": 349,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 659,
+    "acc": 91.3
+   },
+   "special": {
+    "dmg": 1163,
+    "acc": 71.74
+   }
+  },
+  {
+   "name": "Yowie (Crater)",
+   "total": 1887,
+   "overallAcc": 80.54,
+   "normal": {
+    "dmg": 303,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 573,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1011,
+    "acc": 80.54
+   }
+  },
+  {
+   "name": "Yowie (Desert)",
+   "total": 1589,
+   "overallAcc": 77.41,
+   "normal": {
+    "dmg": 255,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 482,
+    "acc": 98.3
+   },
+   "special": {
+    "dmg": 852,
+    "acc": 78.74
+   }
+  },
+  {
+   "name": "Ze Boota",
+   "total": 1986,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 319,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 603,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1064,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Zol Gibbon",
+   "total": 1960,
+   "overallAcc": 53.99,
+   "normal": {
+    "dmg": 315,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 595,
+    "acc": 83.9
+   },
+   "special": {
+    "dmg": 1050,
+    "acc": 64.34
+   }
+  },
+  {
+   "name": "Zu (Crater)",
+   "total": 1961,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 315,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 595,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1051,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Zu (Desert)",
+   "total": 1861,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 299,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 565,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 997,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Astark",
+   "total": 2086,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 335,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 633,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1118,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Barba Ray",
+   "total": 2175,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 349,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 660,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1166,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Crimson Assassin (Caves)",
+   "total": 2051,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 329,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 623,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1099,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Crimson Assassin (Temple)",
+   "total": 2155,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 346,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 654,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1155,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Dal Ra Lie",
+   "total": 1938,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 311,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 588,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1039,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Dal Ra Lie (Shell)",
+   "total": 1967,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 316,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 597,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1054,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Dolmdarl",
+   "total": 1933,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 310,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 587,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1036,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Dolmolm",
+   "total": 1990,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 320,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 604,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1066,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Gal Gryphon",
+   "total": 2025,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 325,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 615,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1085,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Govulmer",
+   "total": 2023,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 325,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 614,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1084,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Hidoom (Caves)",
+   "total": 2122,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 341,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 644,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1137,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Hidoom (Space)",
+   "total": 1933,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 310,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 587,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1036,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Melqueek",
+   "total": 2023,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 325,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 614,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1084,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Mericarol",
+   "total": 1976,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 317,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 600,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1059,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Mericus",
+   "total": 1703,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 273,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 517,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 913,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Merikle",
+   "total": 2012,
+   "overallAcc": 51.64,
+   "normal": {
+    "dmg": 323,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 611,
+    "acc": 82.3
+   },
+   "special": {
+    "dmg": 1078,
+    "acc": 62.74
+   }
+  },
+  {
+   "name": "Merillia",
+   "total": 2091,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 336,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 635,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1120,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Meriltas",
+   "total": 1976,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 317,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 600,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1059,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Merissa A",
+   "total": 2112,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 339,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 641,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1132,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Merissa AA",
+   "total": 2062,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 331,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 626,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1105,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Migium (Caves)",
+   "total": 2122,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 341,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 644,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1137,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Migium (Space)",
+   "total": 1993,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 320,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 605,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1068,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Mil Lily (Caves)",
+   "total": 2066,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 332,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 627,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1107,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Mil Lily (Temple)",
+   "total": 2148,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 345,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 652,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1151,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Nano Dragon",
+   "total": 1954,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 314,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 593,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1047,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Ob Lily (Caves)",
+   "total": 2079,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 334,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 631,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1114,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Ob Lily (Temple)",
+   "total": 2171,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 349,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 659,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1163,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Pan Arms (Caves)",
+   "total": 754,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 121,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 229,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 404,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Pan Arms (Space)",
+   "total": 1933,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 310,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 587,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1036,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Pofuilly Slime",
+   "total": 2079,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 334,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 631,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1114,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Pouilly Slime",
+   "total": 2109,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 339,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 640,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1130,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Vulmer",
+   "total": 2023,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 325,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 614,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1084,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Baranz (Mines)",
+   "total": 1868,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 300,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 567,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1001,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Baranz (Space)",
+   "total": 1878,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 302,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 570,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1006,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Canabin",
+   "total": 2079,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 334,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 631,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1114,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Canabin (Ring)",
+   "total": 2079,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 334,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 631,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1114,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Canune",
+   "total": 2079,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 334,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 631,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1114,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Dubchic (Mines)",
+   "total": 2023,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 325,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 614,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1084,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Dubchic (Space)",
+   "total": 2134,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 343,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 648,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1143,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Duvuik (Mines)",
+   "total": 2837,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 456,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 861,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1520,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Duvuik (Space)",
+   "total": 2803,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 450,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 851,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1502,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Epsilon",
+   "total": 843,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 135,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 256,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 452,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Gillchic (Mines)",
+   "total": 2032,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 326,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 617,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1089,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Gillchic (Space)",
+   "total": 2142,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 344,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 650,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1148,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Recobox",
+   "total": 1789,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 287,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 543,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 959,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Recon",
+   "total": 2019,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 324,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 613,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1082,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Sinow Berill",
+   "total": 2045,
+   "overallAcc": 73.91,
+   "normal": {
+    "dmg": 328,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 621,
+    "acc": 96.3
+   },
+   "special": {
+    "dmg": 1096,
+    "acc": 76.74
+   }
+  },
+  {
+   "name": "Sinow Blue",
+   "total": 2023,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 325,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 614,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1084,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Sinow Red",
+   "total": 1882,
+   "overallAcc": 97.54,
+   "normal": {
+    "dmg": 302,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 571,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1009,
+    "acc": 97.54
+   }
+  },
+  {
+   "name": "Sinow Spigell",
+   "total": 1878,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 302,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 570,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1006,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Sinow Zele",
+   "total": 1786,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 287,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 542,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 957,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Sinow Zoa",
+   "total": 1924,
+   "overallAcc": 46,
+   "normal": {
+    "dmg": 309,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 584,
+    "acc": 78.3
+   },
+   "special": {
+    "dmg": 1031,
+    "acc": 58.74
+   }
+  },
+  {
+   "name": "Vol Opt ver. 2 (Form 1)",
+   "total": 1938,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 311,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 588,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1039,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Vol Opt ver. 2 (Form 2)",
+   "total": 1826,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 293,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 554,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 979,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Arlan (Ruins)",
+   "total": 1938,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 311,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 588,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1039,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Arlan (Temple)",
+   "total": 2234,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 359,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 678,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1197,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Bulclaw",
+   "total": 1938,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 311,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 588,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1039,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Claw",
+   "total": 1995,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 320,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 606,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1069,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Dark Bringer",
+   "total": 1898,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 305,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 576,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1017,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Dark Falz (Form 1)",
+   "total": 1826,
+   "overallAcc": 89.34,
+   "normal": {
+    "dmg": 293,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 554,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 979,
+    "acc": 89.34
+   }
+  },
+  {
+   "name": "Dark Falz (Form 2)",
+   "total": 1826,
+   "overallAcc": 89.34,
+   "normal": {
+    "dmg": 293,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 554,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 979,
+    "acc": 89.34
+   }
+  },
+  {
+   "name": "Dark Falz (Form 3)",
+   "total": 1762,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 283,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 535,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 944,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Dark Gunner",
+   "total": 1938,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 311,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 588,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1039,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Darvant",
+   "total": 2165,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 348,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 657,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1160,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Darvant (Falz)",
+   "total": 2137,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 343,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 649,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1145,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Del Lily",
+   "total": 1618,
+   "overallAcc": 97.94,
+   "normal": {
+    "dmg": 260,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 491,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 867,
+    "acc": 97.94
+   }
+  },
+  {
+   "name": "Del Rappy (Crater)",
+   "total": 1930,
+   "overallAcc": 66.82,
+   "normal": {
+    "dmg": 310,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 586,
+    "acc": 92.1
+   },
+   "special": {
+    "dmg": 1034,
+    "acc": 72.54
+   }
+  },
+  {
+   "name": "Del Rappy (Desert)",
+   "total": 1775,
+   "overallAcc": 46,
+   "normal": {
+    "dmg": 285,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 539,
+    "acc": 78.3
+   },
+   "special": {
+    "dmg": 951,
+    "acc": 58.74
+   }
+  },
+  {
+   "name": "Del-D (Ruins)",
+   "total": 1911,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 307,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 580,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1024,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Del-D (Temple)",
+   "total": 2174,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 349,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 660,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1165,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Delbiter",
+   "total": 1746,
+   "overallAcc": 82.34,
+   "normal": {
+    "dmg": 280,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 530,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 936,
+    "acc": 82.34
+   }
+  },
+  {
+   "name": "Deldepth",
+   "total": 2062,
+   "overallAcc": 2.96,
+   "normal": {
+    "dmg": 331,
+    "acc": 61
+   },
+   "hard": {
+    "dmg": 626,
+    "acc": 33.9
+   },
+   "special": {
+    "dmg": 1105,
+    "acc": 14.34
+   }
+  },
+  {
+   "name": "Delsaber (Ruins)",
+   "total": 1938,
+   "overallAcc": 48.22,
+   "normal": {
+    "dmg": 311,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 588,
+    "acc": 79.9
+   },
+   "special": {
+    "dmg": 1039,
+    "acc": 60.34
+   }
+  },
+  {
+   "name": "Delsaber (Space)",
+   "total": 2045,
+   "overallAcc": 73.91,
+   "normal": {
+    "dmg": 328,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 621,
+    "acc": 96.3
+   },
+   "special": {
+    "dmg": 1096,
+    "acc": 76.74
+   }
+  },
+  {
+   "name": "Girtablulu",
+   "total": 2012,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 323,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 611,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1078,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Goran",
+   "total": 1931,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 310,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 586,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1035,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Goran Detonator",
+   "total": 1698,
+   "overallAcc": 89.34,
+   "normal": {
+    "dmg": 273,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 515,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 910,
+    "acc": 89.34
+   }
+  },
+  {
+   "name": "Gran Sorcerer (Ruins)",
+   "total": 2038,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 327,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 619,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1092,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Gran Sorcerer (Space)",
+   "total": 2134,
+   "overallAcc": 96.34,
+   "normal": {
+    "dmg": 343,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 648,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1143,
+    "acc": 96.34
+   }
+  },
+  {
+   "name": "Ill Gill",
+   "total": 1314,
+   "overallAcc": 40.16,
+   "normal": {
+    "dmg": 211,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 399,
+    "acc": 73.9
+   },
+   "special": {
+    "dmg": 704,
+    "acc": 54.34
+   }
+  },
+  {
+   "name": "Indi Belra (Ruins)",
+   "total": 1657,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 266,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 503,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 888,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Indi Belra (Temple)",
+   "total": 2056,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 330,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 624,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1102,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Kondrieu (Phase 1)",
+   "total": 1789,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 287,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 543,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 959,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Kondrieu (Phase 2)",
+   "total": 1631,
+   "overallAcc": 88.74,
+   "normal": {
+    "dmg": 262,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 495,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 874,
+    "acc": 88.74
+   }
+  },
+  {
+   "name": "Merlan (Ruins)",
+   "total": 1925,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 309,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 584,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1032,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Merlan (Temple)",
+   "total": 2194,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 352,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 666,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1176,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Morfos",
+   "total": 1159,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 186,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 352,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 621,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Olga Flow (Form 1)",
+   "total": 1839,
+   "overallAcc": 98.34,
+   "normal": {
+    "dmg": 295,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 558,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 986,
+    "acc": 98.34
+   }
+  },
+  {
+   "name": "Olga Flow (Form 2)",
+   "total": 1717,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 276,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 521,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 920,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Pyro Goran",
+   "total": 1869,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 300,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 567,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 1002,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Saint-Milion (Phase 1)",
+   "total": 1789,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 287,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 543,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 959,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Saint-Milion (Phase 2)",
+   "total": 1631,
+   "overallAcc": 88.74,
+   "normal": {
+    "dmg": 262,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 495,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 874,
+    "acc": 88.74
+   }
+  },
+  {
+   "name": "Shambertin (Phase 1)",
+   "total": 1789,
+   "overallAcc": 100,
+   "normal": {
+    "dmg": 287,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 543,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 959,
+    "acc": 100
+   }
+  },
+  {
+   "name": "Shambertin (Phase 2)",
+   "total": 1631,
+   "overallAcc": 88.74,
+   "normal": {
+    "dmg": 262,
+    "acc": 100
+   },
+   "hard": {
+    "dmg": 495,
+    "acc": 100
+   },
+   "special": {
+    "dmg": 874,
+    "acc": 88.74
+   }
+  }
+ ]
+}
