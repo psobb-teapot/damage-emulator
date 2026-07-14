@@ -14,9 +14,15 @@ TypeScript モジュールとして提供します。
 - シフタ / ザルア、凍結・麻痺による敵 EVP 低下、V501/V502、Smartlink・距離ペナルティ
 - クリティカル (LCK 依存) を織り込んだ期待ダメージ
 - 命中・クリティカル・特殊発動を確率分布として畳み込んだ **キル確率** と **期待残りHP**
-- **全123武器** (ATP範囲・ATA・最大グラインド・Hit%/属性上限・特殊・段ごとのヒット数)
+- **全123武器** (ATP範囲・ATA・最大グラインド・Hit%/属性上限・特殊・段ごとのヒット数・射程)
 - **全135敵** (Ultimate 全エリア: Ep1/Ep2/Ep4、種族・全耐性・ボスフラグ付き)
 - **フレーム8種 / バリア10種** (ATP/ATA 補正) + ユニット等の追加値入力
+- **セット効果** (Thirteen+Diska of Braveman、Crimson Coat+Red系、Samurai Armor+Orotiagito、
+  Sweetheart、Safety Heart+Rambling May、POSS ユニット、Commander Blade)
+- **SNグリッチ** (2段目の命中率で1段目を置換)
+- **命中率レンジ** (武器の最大射程での距離ペナルティ込み命中率)
+- **コンボ所要フレーム数** (男女・クラス固有アニメーション対応の攻撃速度)
+- **オートコンボ** (命中100%優先 → 非撃破なら最大ダメージ / 撃破可能なら最小フレームで自動探索)
 - 全12クラスの Lv200 / 最大ステータスプリセット
 
 ## 使い方
@@ -104,6 +110,9 @@ const chargeVulcan = makeWeapon({
   (Master Raven 3hit / L&K38 5hit / Last Swan 3hit)、TJS必中を網羅。
 - `test/psostats-all-enemies.test.ts` — psostats に**全135敵**を表示させた
   結果テーブルとの一括照合 (N/H/S ダメージ・命中率・合計・総合命中率)。
+- `test/psostats-features.test.ts` — セット効果6種・POSS/Commander Blade・
+  SNグリッチ・命中率レンジ・コンボフレーム数 (男性/女性/クラス固有アニメーション)・
+  オートコンボの選択結果 (通常敵 → N/H/S、高EVP敵 → 単発N) の実測照合。
 
 全パターンでダメージ・命中率・合計値が一致する (命中率は psostats の
 floor 2桁表示に対し浮動小数点の丸め差 ±0.01 まで許容)。
@@ -146,14 +155,18 @@ src/
 ├── damage.ts       # ダメージ計算
 ├── accuracy.ts     # 命中率計算
 ├── special.ts      # 特殊攻撃の発動率・効果
-├── combo.ts        # コンボシミュレーション (キル確率の分布計算)
+├── combo.ts        # コンボシミュレーション (キル確率の分布計算, SNグリッチ)
+├── equipment.ts    # セット効果 / POSS ユニット / Commander Blade
+├── frames.ts       # コンボ所要フレーム数 (攻撃速度)
+├── autoCombo.ts    # 最適コンボの自動探索
 ├── ui/             # ブラウザUI (Vite + vanilla TS)
 └── data/
-    ├── classes.ts     # 全12クラスの Lv200 / 最大ステータス
-    ├── specials.ts    # 特殊攻撃の定義テーブル (固有特殊含む)
-    ├── weapons.gen.ts # 全123武器 (自動生成)
-    ├── enemies.gen.ts # 全135敵 (自動生成)
-    └── armor.gen.ts   # フレーム/バリア (自動生成)
+    ├── classes.ts       # 全12クラスの Lv200 / 最大ステータス
+    ├── specials.ts      # 特殊攻撃の定義テーブル (固有特殊含む)
+    ├── weapons.gen.ts   # 全123武器 (自動生成)
+    ├── enemies.gen.ts   # 全135敵 (自動生成)
+    ├── armor.gen.ts     # フレーム/バリア (自動生成)
+    └── animation.gen.ts # アニメーションフレーム表 / POSS対象武器 (自動生成)
 
 data/raw/           # psostats 由来の生データ (スナップショット)
 tools/generate-data.mjs  # 生データ → src/data/*.gen.ts の生成

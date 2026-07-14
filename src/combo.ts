@@ -1,4 +1,4 @@
-import { hitChance } from "./accuracy.js";
+import { distancePenaltyApplies, hitChance, hitChanceRange } from "./accuracy.js";
 import { criticalChance, DEFAULT_HITS_PER_ATTACK } from "./constants.js";
 import { criticalDamage, damageRange } from "./damage.js";
 import { resolveSpecial } from "./data/specials.js";
@@ -40,6 +40,16 @@ export function simulateCombo(input: ComboInput): ComboResult {
   const hits: HitResult[] = [];
   const costs: string[] = [];
 
+  // 各段の命中率を先に計算 (SNグリッチ: 2段目が高ければ1段目を置換)
+  const stepAccs = attacks.map((attack, i) =>
+    hitChance(player, weapon, enemy, attack.type, (i + 1) as 1 | 2 | 3, context),
+  );
+  if (context.snGlitch && stepAccs.length >= 2 && stepAccs[1]! > stepAccs[0]!) {
+    stepAccs[0] = stepAccs[1]!;
+  }
+  const showRange =
+    distancePenaltyApplies(player, context) && (weapon.horizontalDistance ?? 0) > 0;
+
   // 残りHPの確率分布。初期状態: 満タン HP が確率 1
   let dist: HpDistribution = new Map([[enemy.hp, 1]]);
 
@@ -48,7 +58,10 @@ export function simulateCombo(input: ComboInput): ComboResult {
     const comboStep = (step + 1) as 1 | 2 | 3;
     const nHits = attack.hits ?? defaultHits;
 
-    const acc = hitChance(player, weapon, enemy, attack.type, comboStep, context);
+    const acc = stepAccs[step]!;
+    const accAtMaxRange = showRange
+      ? hitChanceRange(player, weapon, enemy, attack.type, comboStep, context).atMaxRange
+      : undefined;
     const dmg = damageRange(player, weapon, enemy, attack.type, context);
     const special: SpecialResult | null =
       attack.type === "special" ? evaluateSpecial(player, weapon, enemy, context) : null;
@@ -78,6 +91,7 @@ export function simulateCombo(input: ComboInput): ComboResult {
         attackType: attack.type,
         hitIndex: h + 1,
         accuracy: round2(acc),
+        accuracyAtMaxRange: accAtMaxRange != null ? round2(accAtMaxRange) : undefined,
         criticalChance: round2(critChance),
         damage: dmg,
         avgWithCritical: round2(avgWithCrit),

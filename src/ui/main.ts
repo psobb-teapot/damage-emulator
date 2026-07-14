@@ -1,9 +1,12 @@
+import { findBestCombo } from "../autoCombo.js";
 import { simulateCombo } from "../combo.js";
 import { BARRIERS, FRAMES } from "../data/armor.gen.js";
 import { CLASSES } from "../data/classes.js";
 import { ENEMIES } from "../data/enemies.js";
 import { SPECIALS } from "../data/specials.js";
 import { WEAPONS } from "../data/weapons.js";
+import { equipmentBonus, type PossUnit } from "../equipment.js";
+import { comboFrames } from "../frames.js";
 import { DEFAULT_HITS_PER_ATTACK } from "../constants.js";
 import type {
   AttackType,
@@ -53,6 +56,29 @@ const ATTACK_LABELS: Record<AttackType, string> = {
   normal: "N",
   hard: "H",
   special: "S",
+};
+
+/** カスタム武器用: 武器種 → 代表アニメーション名 (フレーム計算に使用) */
+const KIND_TO_ANIMATION: Record<WeaponKind, string> = {
+  saber: "Saber",
+  sword: "Sword",
+  dagger: "Dagger",
+  partisan: "Partisan",
+  slicer: "Slicer",
+  katana: "Katana",
+  twinSword: "Twin Sword",
+  doubleSaber: "Double Saber",
+  claw: "Claw",
+  fist: "Fist",
+  handgun: "Handgun",
+  rifle: "Rifle",
+  mechgun: "Mechgun",
+  shot: "Shot",
+  launcher: "Launcher",
+  card: "Card",
+  cane: "Cane",
+  rod: "Rod",
+  wand: "Wand",
 };
 
 /* ---------- セレクトの初期化 ---------- */
@@ -134,6 +160,13 @@ fillSelect(select("wpSpecial"), [
 const noneFirst = (keys: string[]) => ["None", ...keys.filter((k) => k !== "None").sort()];
 fillSelect(select("frame"), noneFirst(Object.keys(FRAMES)).map((k) => [k, k]));
 fillSelect(select("barrier"), noneFirst(Object.keys(BARRIERS)).map((k) => [k, k]));
+fillSelect(select("possUnit"), [
+  ["", "なし"],
+  ["POSS1", "POSS x1 (+30)"],
+  ["POSS2", "POSS x2 (+60)"],
+  ["POSS3", "POSS x3 (+90)"],
+  ["POSS4", "POSS x4 (+120)"],
+]);
 
 /* ---------- コンボビルダー ---------- */
 
@@ -233,9 +266,15 @@ function readCombo(): ComboAttack[] {
 function readInput(): ComboInput {
   const cls = CLASSES[select("cls").value];
   const specialKey = select("wpSpecial").value;
+  const kind = select("wpKind").value as WeaponKind;
+  // プリセット武器はアニメーション・射程・単発制限を引き継ぐ
+  const preset = WEAPONS[select("wpPreset").value];
   const weapon: Weapon = {
-    name: select("wpPreset").value === "custom" ? "カスタム武器" : select("wpPreset").value,
-    kind: select("wpKind").value as WeaponKind,
+    name: preset ? preset.name : "カスタム武器",
+    kind,
+    animation: preset?.kind === kind ? preset.animation : KIND_TO_ANIMATION[kind],
+    horizontalDistance: preset?.kind === kind ? preset.horizontalDistance : 0,
+    singleAttackOnly: preset?.kind === kind ? preset.singleAttackOnly : undefined,
     atpMin: num("wpAtpMin"),
     atpMax: Math.max(num("wpAtpMin"), num("wpAtpMax")),
     ata: num("wpAta"),
@@ -251,6 +290,14 @@ function readInput(): ComboInput {
 
   const frame = FRAMES[select("frame").value] ?? { atp: 0, ata: 0 };
   const barrier = BARRIERS[select("barrier").value] ?? { atp: 0, ata: 0 };
+  // セット効果 (特定の武器+防具の組み合わせ) + POSS + Commander Blade
+  const setBonus = equipmentBonus({
+    weapon,
+    frameName: select("frame").value,
+    barrierName: select("barrier").value,
+    possUnit: (select("possUnit").value || null) as PossUnit | null,
+    commanderBlade: input("commanderBlade").checked,
+  });
 
   return {
     player: {
@@ -259,8 +306,8 @@ function readInput(): ComboInput {
       lck: num("lck"),
       classCategory: cls?.category ?? "hunter",
       isAndroid: cls?.isAndroid ?? false,
-      armorAtp: frame.atp + barrier.atp + num("armorAtp"),
-      armorAta: frame.ata + barrier.ata + num("armorAta"),
+      armorAtp: frame.atp + barrier.atp + setBonus.atp + num("armorAtp"),
+      armorAta: frame.ata + barrier.ata + setBonus.ata + num("armorAta"),
       maxHp: cls ? (input("useMax").checked ? cls.max.hp : cls.lv200.hp) : undefined,
       maxTp: cls ? (input("useMax").checked ? cls.max.tp : cls.lv200.tp) : undefined,
     },
@@ -285,6 +332,7 @@ function readInput(): ComboInput {
       v501: input("ctxV501").checked,
       v502: input("ctxV502").checked,
       smartlink: input("ctxSmartlink").checked,
+      snGlitch: input("ctxSnGlitch").checked,
       distance: num("ctxDistance"),
       includeCriticals: input("ctxCrits").checked,
     },
@@ -355,10 +403,14 @@ function render(): void {
       const multi = (inputData.attacks[hit.comboStep - 1]?.hits ??
         inputData.weapon.hitsPerAttack ??
         DEFAULT_HITS_PER_ATTACK[inputData.weapon.kind]) > 1;
+      const accText =
+        hit.accuracyAtMaxRange != null && hit.accuracyAtMaxRange !== hit.accuracy
+          ? `${hit.accuracyAtMaxRange.toFixed(1)}–${hit.accuracy.toFixed(1)}%`
+          : `${hit.accuracy.toFixed(1)}%`;
       tr.innerHTML = `
         <td class="num">${hit.comboStep}${multi ? `-${hit.hitIndex}` : ""}</td>
         <td class="num t-${hit.attackType}">${label}</td>
-        <td class="num">${hit.accuracy.toFixed(1)}%</td>
+        <td class="num" title="最遠距離–密着時の命中率">${accText}</td>
         <td><span class="num dmg-avg">${fmt(hit.damage.avg)}</span>
             <span class="dmg-range">${fmt(hit.damage.min)}–${fmt(hit.damage.max)}</span></td>
         <td class="num">${fmt(hit.expectedDamage)}</td>
@@ -388,6 +440,15 @@ function render(): void {
     } else {
       cost.hidden = true;
     }
+
+    // コンボの所要フレーム数
+    const fr = comboFrames(
+      inputData.weapon,
+      select("cls").value,
+      inputData.attacks.map((a) => a.type),
+    );
+    $("comboFramesOut").textContent =
+      fr.frames != null ? `所要フレーム: ${fr.frames}F` : "所要フレーム: データなし";
   } catch (e) {
     errorBox.hidden = false;
     errorBox.textContent = e instanceof Error ? e.message : String(e);
@@ -429,6 +490,32 @@ for (const id of enemyFieldIds) {
     select("enPreset").value = "custom";
   });
 }
+
+// オートコンボ: psostats と同じ規則で最適コンボを探索して反映
+$("autoComboBtn").addEventListener("click", () => {
+  try {
+    const inputData = readInput();
+    const best = findBestCombo(
+      inputData.player,
+      inputData.weapon,
+      inputData.enemy,
+      select("cls").value,
+      inputData.context,
+    );
+    if (!best) return;
+    for (let step = 1; step <= 3; step++) {
+      const type = best.attacks[step - 1] ?? "none";
+      const radio = document.querySelector<HTMLInputElement>(
+        `input[name="combo${step}"][value="${type}"]`,
+      );
+      if (radio) radio.checked = true;
+      input(`hits${step}`).value = "";
+    }
+    render();
+  } catch {
+    /* 入力不備時は何もしない (エラーは render 側で表示済み) */
+  }
+});
 
 input("shifta").addEventListener("input", () => {
   $("shiftaOut").textContent = input("shifta").value;

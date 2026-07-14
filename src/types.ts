@@ -71,6 +71,8 @@ export interface SpecialDefinition {
 export interface Weapon {
   name: string;
   kind: WeaponKind;
+  /** psostats のアニメーション名 (フレーム計算に使用。例: "Saber", "Master Raven") */
+  animation?: string;
   /** 武器 ATP の最小値・最大値 (グラインド・属性補正前) */
   atpMin: number;
   atpMax: number;
@@ -103,6 +105,10 @@ export interface Weapon {
    * 1 = 減衰なし, 0.5, 0.33
    */
   specialEffectiveness?: 1 | 0.5 | 0.33 | number;
+  /** 武器の水平射程。最遠距離での命中率 (距離ペナルティ) 計算に使用 */
+  horizontalDistance?: number;
+  /** コンボ不可の単発武器 (Master Raven, Dark Flow, L&K38 Combat 等) */
+  singleAttackOnly?: boolean;
 }
 
 export interface PlayerStats {
@@ -156,13 +162,18 @@ export interface CombatContext {
   frozen?: boolean;
   /** 敵が麻痺/ショック中 (EVP×0.85) */
   paralyzed?: boolean;
-  /** 射撃武器の距離 (ペナルティ = 距離×0.33、HU/FO かつ Smartlink 無しのみ) */
+  /** 距離 (ペナルティ = 距離×0.33、HU/FO かつ Smartlink 無しのみ) */
   distance?: number;
   smartlink?: boolean;
   v501?: boolean;
   v502?: boolean;
   /** クリティカル (LCK/5 %, ×1.5) を期待値に含めるか。デフォルト true */
   includeCriticals?: boolean;
+  /**
+   * SNグリッチ: 2段目の命中率が1段目より高い場合、
+   * 1段目を2段目の命中率で置き換えるテクニック
+   */
+  snGlitch?: boolean;
 }
 
 /** コンボ 1 段の指定 */
@@ -202,8 +213,10 @@ export interface HitResult {
   comboStep: 1 | 2 | 3;
   attackType: AttackType;
   hitIndex: number;
-  /** 命中率 % (0-100) */
+  /** 命中率 % (0-100)。SNグリッチ適用後の値 */
   accuracy: number;
+  /** 武器の最遠距離での命中率 % (距離ペナルティ対象時のみ) */
+  accuracyAtMaxRange?: number;
   /** クリティカル発生率 % */
   criticalChance: number;
   /** 通常ヒット時ダメージ (クリティカル抜き) */

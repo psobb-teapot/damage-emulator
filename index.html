@@ -59,11 +59,19 @@
             <select id="barrier"></select>
           </label>
           <label class="field">
-            <span>追加 ATP <small>(ユニット等)</small></span>
+            <span>ユニット <small>(POSS)</small></span>
+            <select id="possUnit"></select>
+          </label>
+          <label class="field checkbox">
+            <input type="checkbox" id="commanderBlade" />
+            <span>Commander Blade <small>(ATA+20)</small></span>
+          </label>
+          <label class="field">
+            <span>追加 ATP</span>
             <input type="number" id="armorAtp" min="0" value="0" />
           </label>
           <label class="field">
-            <span>追加 ATA <small>(ユニット等)</small></span>
+            <span>追加 ATA</span>
             <input type="number" id="armorAta" min="0" value="0" />
           </label>
         </div>
@@ -213,6 +221,10 @@
             <span>Smartlink</span>
           </label>
           <label class="field checkbox">
+            <input type="checkbox" id="ctxSnGlitch" />
+            <span>SNグリッチ</span>
+          </label>
+          <label class="field checkbox">
             <input type="checkbox" id="ctxCrits" checked />
             <span>クリティカルを含める</span>
           </label>
@@ -227,6 +239,10 @@
       <fieldset class="panel panel-combo" id="panel-combo">
         <legend>コンボ</legend>
         <div class="combo-steps" id="comboSteps"></div>
+        <div class="combo-footer">
+          <button type="button" id="autoComboBtn">最適コンボを探索</button>
+          <span class="combo-frames" id="comboFramesOut"></span>
+        </div>
       </fieldset>
     </div>
 

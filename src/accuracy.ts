@@ -3,7 +3,6 @@ import {
   COMBO_ATA_MODIFIER,
   DISTANCE_PENALTY_FACTOR,
   EVP_FACTOR,
-  RANGED_WEAPONS,
 } from "./constants.js";
 import { resolveSpecial } from "./data/specials.js";
 import { effectiveEvp, totalAta } from "./stats.js";
@@ -23,7 +22,7 @@ import type {
  * - 攻撃タイプ修正: Normal 1.0 / Hard 0.7 / Special 0.5
  *   (Heavy 相当の命中を持つ例外武器の特殊は 0.7)
  * - コンボ段修正: 1段目 1.0 / 2段目 1.3 / 3段目 1.69
- * - 距離ペナルティ: 距離 × 0.33 (HU/FO かつ Smartlink 無しの射撃武器のみ)
+ * - 距離ペナルティ: 距離 × 0.33 (HU/FO かつ Smartlink 無し。psostats 準拠で全武器対象)
  */
 export function hitChance(
   player: PlayerStats,
@@ -45,12 +44,42 @@ export function hitChance(
   const evpEff = effectiveEvp(enemy, context);
 
   let distancePenalty = 0;
-  const cls = player.classCategory ?? "hunter";
-  const isRanged = RANGED_WEAPONS.has(weapon.kind);
-  if (isRanged && (cls === "hunter" || cls === "force") && !context.smartlink) {
+  if (distancePenaltyApplies(player, context)) {
     distancePenalty = (context.distance ?? 0) * DISTANCE_PENALTY_FACTOR;
   }
 
   const acc = ataEff - evpEff * EVP_FACTOR - distancePenalty;
   return Math.max(0, Math.min(100, acc));
+}
+
+/** 距離ペナルティの適用条件: HU/FO かつ Smartlink 無し (psostats 準拠) */
+export function distancePenaltyApplies(player: PlayerStats, context: CombatContext = {}): boolean {
+  const cls = player.classCategory ?? "hunter";
+  return (cls === "hunter" || cls === "force") && !context.smartlink;
+}
+
+/**
+ * 命中率のレンジを返す。
+ * atPointBlank = 密着時 (距離0)、atMaxRange = 武器の最大射程 (horizontalDistance) 時。
+ * ペナルティ対象外 (RA / Smartlink) では両者は同値。
+ */
+export function hitChanceRange(
+  player: PlayerStats,
+  weapon: Weapon,
+  enemy: Enemy,
+  attackType: AttackType,
+  comboStep: 1 | 2 | 3,
+  context: CombatContext = {},
+): { atPointBlank: number; atMaxRange: number } {
+  const atPointBlank = hitChance(player, weapon, enemy, attackType, comboStep, {
+    ...context,
+    distance: 0,
+  });
+  const atMaxRange = distancePenaltyApplies(player, context)
+    ? hitChance(player, weapon, enemy, attackType, comboStep, {
+        ...context,
+        distance: weapon.horizontalDistance ?? 0,
+      })
+    : atPointBlank;
+  return { atPointBlank, atMaxRange };
 }

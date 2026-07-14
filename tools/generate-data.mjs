@@ -15,6 +15,7 @@ const weapons = raw("weapons.json");
 const enemies = raw("enemies.json");
 const frames = raw("frames.json");
 const barriers = raw("barriers.json");
+const animation = raw("animation-frames.json");
 
 /* ---------- 武器 ---------- */
 
@@ -64,12 +65,14 @@ for (const [key, w] of Object.entries(weapons)) {
   const fields = [
     `name: ${JSON.stringify(w.name)}`,
     `kind: ${JSON.stringify(kind)}`,
+    `animation: ${JSON.stringify(w.animation)}`,
     `atpMin: ${w.minAtp}`,
     `atpMax: ${w.maxAtp}`,
     `ata: ${w.ata}`,
     `maxGrind: ${w.grind ?? 0}`,
     `maxHitPercent: ${w.maxHit ?? 0}`,
     `maxAttributePercent: ${w.maxAttr ?? 0}`,
+    `horizontalDistance: ${w.horizontalDistance ?? 0}`,
   ];
   if (special) fields.push(`special: ${JSON.stringify(special)}`);
   if (specialRaw === "Hell*") fields.push(`specialEffectiveness: 0.5`);
@@ -77,6 +80,7 @@ for (const [key, w] of Object.entries(weapons)) {
   if (specialRaw && HEAVY_ACCURACY_SPECIALS.has(specialRaw)) {
     fields.push(`specialUsesHeavyAccuracy: true`);
   }
+  if (w.comboPreset?.attack2 === "NONE") fields.push(`singleAttackOnly: true`);
   weaponEntries.push(`  ${JSON.stringify(key)}: { ${fields.join(", ")} },`);
 }
 
@@ -164,6 +168,34 @@ ${armorLines(barriers)}
 `,
 );
 
+/* ---------- アニメーションフレーム (攻撃速度) ---------- */
+
+writeFileSync(
+  join(root, "src/data/animation.gen.ts"),
+  `// このファイルは tools/generate-data.mjs により自動生成される。手で編集しないこと。
+// データ出典: psostats.com/combo-calculator (コンボの所要フレーム数)
+/**
+ * n1/n2/n3 = 各段 Normal の所要フレーム、h1/h2/h3 = Heavy/Special。
+ * n1c/h1c 等の "c" はコンボを継続する場合 (アニメーションキャンセル) の値。
+ */
+export type AnimationFrames = Partial<
+  Record<"n1" | "n1c" | "n2" | "n2c" | "n3" | "h1" | "h1c" | "h2" | "h2c" | "h3", number>
+>;
+
+/** 男性キャラの基本アニメーション */
+export const FRAME_DATA: Record<string, AnimationFrames> = ${JSON.stringify(animation.frameData, null, 2)};
+
+/** 女性キャラの差分アニメーション */
+export const FEMALE_FRAME_DATA: Record<string, AnimationFrames> = ${JSON.stringify(animation.femaleFrameData, null, 2)};
+
+/** クラス固有の差分アニメーション */
+export const CLASS_SPECIFIC_FRAME_DATA: Record<string, Record<string, AnimationFrames>> = ${JSON.stringify(animation.classSpecificFrameData, null, 2)};
+
+/** POSS ユニットの ATA ブースト対象武器 */
+export const POSS_WEAPONS: ReadonlySet<string> = new Set(${JSON.stringify(animation.possWeapons, null, 2)});
+`,
+);
+
 console.log(
-  `generated: weapons=${weaponEntries.length} enemies=${enemyEntries.length} frames=${Object.keys(frames).length} barriers=${Object.keys(barriers).length}`,
+  `generated: weapons=${weaponEntries.length} enemies=${enemyEntries.length} frames=${Object.keys(frames).length} barriers=${Object.keys(barriers).length} animations=${Object.keys(animation.frameData).length}`,
 );
