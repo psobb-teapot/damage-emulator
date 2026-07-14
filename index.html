@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PSOBB コンボ計算機</title>
+  <link
+    rel="icon"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M2 2h24l4 4v24H2z' fill='%2312203A'/%3E%3Cpath d='M6 22 16 6l10 16h-6l-4-7-4 7z' fill='%2352D8EF'/%3E%3C/svg%3E"
+  />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="/src/ui/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <h1><span class="brand-photon">COMBO</span> CALCULATOR</h1>
+      <p class="tagline">PSOBB ダメージ計算機 · 計算式は wiki.pioneer2.net 準拠</p>
+    </div>
+  </header>
+
+  <main class="layout">
+    <div class="controls">
+      <!-- キャラクター -->
+      <fieldset class="panel" id="panel-character">
+        <legend>キャラクター</legend>
+        <div class="field-grid">
+          <label class="field span2">
+            <span>クラス</span>
+            <select id="cls"></select>
+          </label>
+          <label class="field checkbox span2">
+            <input type="checkbox" id="useMax" checked />
+            <span>最大ステータス (マテリアル込み) を使う</span>
+          </label>
+          <label class="field">
+            <span>ATP <small>(武器抜き)</small></span>
+            <input type="number" id="baseAtp" min="0" />
+          </label>
+          <label class="field">
+            <span>ATA <small>(武器抜き)</small></span>
+            <input type="number" id="baseAta" min="0" step="0.1" />
+          </label>
+          <label class="field">
+            <span>LCK</span>
+            <input type="number" id="lck" min="0" max="100" value="100" />
+          </label>
+          <label class="field">
+            <span>防具 ATP</span>
+            <input type="number" id="armorAtp" min="0" value="0" />
+          </label>
+          <label class="field">
+            <span>防具 ATA</span>
+            <input type="number" id="armorAta" min="0" value="0" />
+          </label>
+        </div>
+      </fieldset>
+
+      <!-- 武器 -->
+      <fieldset class="panel" id="panel-weapon">
+        <legend>武器</legend>
+        <div class="field-grid">
+          <label class="field span2">
+            <span>プリセット</span>
+            <select id="wpPreset"></select>
+          </label>
+          <label class="field span2">
+            <span>武器種</span>
+            <select id="wpKind"></select>
+          </label>
+          <label class="field">
+            <span>ATP 最小</span>
+            <input type="number" id="wpAtpMin" min="0" />
+          </label>
+          <label class="field">
+            <span>ATP 最大</span>
+            <input type="number" id="wpAtpMax" min="0" />
+          </label>
+          <label class="field">
+            <span>ATA</span>
+            <input type="number" id="wpAta" min="0" />
+          </label>
+          <label class="field">
+            <span>グラインド</span>
+            <input type="number" id="wpGrind" min="0" />
+          </label>
+          <label class="field">
+            <span>属性 %</span>
+            <input type="number" id="wpAttr" min="0" max="100" value="0" />
+          </label>
+          <label class="field">
+            <span>ヒット数/攻撃</span>
+            <input type="number" id="wpHits" min="1" max="10" placeholder="自動" />
+          </label>
+          <label class="field span2">
+            <span>特殊攻撃</span>
+            <select id="wpSpecial"></select>
+          </label>
+          <label class="field span2">
+            <span>特殊効果係数 <small>(剣類 50% / スライサー類 33%)</small></span>
+            <select id="wpEff">
+              <option value="1">100% (減衰なし)</option>
+              <option value="0.5">50%</option>
+              <option value="0.33">33%</option>
+            </select>
+          </label>
+          <label class="field checkbox span2">
+            <input type="checkbox" id="wpHeavyAcc" />
+            <span>特殊が Heavy 相当の命中 (Vjaya / Frozen Shooter 等)</span>
+          </label>
+          <label class="field checkbox span2">
+            <input type="checkbox" id="wpHeavyDmg" />
+            <span>特殊が Heavy 相当の威力 (Frozen Shooter / Snow Queen)</span>
+          </label>
+        </div>
+      </fieldset>
+
+      <!-- 敵 -->
+      <fieldset class="panel" id="panel-enemy">
+        <legend>敵</legend>
+        <div class="field-grid">
+          <label class="field span2">
+            <span>プリセット</span>
+            <select id="enPreset"></select>
+          </label>
+          <label class="field">
+            <span>HP</span>
+            <input type="number" id="enHp" min="1" />
+          </label>
+          <label class="field">
+            <span>難易度</span>
+            <select id="enDifficulty">
+              <option value="normal">Normal</option>
+              <option value="hard">Hard</option>
+              <option value="vhard">Very Hard</option>
+              <option value="ultimate" selected>Ultimate</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>DFP</span>
+            <input type="number" id="enDfp" min="0" />
+          </label>
+          <label class="field">
+            <span>EVP</span>
+            <input type="number" id="enEvp" min="0" />
+          </label>
+          <label class="field">
+            <span>EDK <small>(即死耐性)</small></span>
+            <input type="number" id="enEdk" min="0" />
+          </label>
+          <label class="field">
+            <span>ESP <small>(状態異常耐性)</small></span>
+            <input type="number" id="enEsp" min="0" />
+          </label>
+          <label class="field checkbox">
+            <input type="checkbox" id="enMachine" />
+            <span>機械系</span>
+          </label>
+          <label class="field checkbox">
+            <input type="checkbox" id="enBoss" />
+            <span>ボス</span>
+          </label>
+        </div>
+      </fieldset>
+
+      <!-- 状況 -->
+      <fieldset class="panel" id="panel-context">
+        <legend>状況</legend>
+        <div class="field-grid">
+          <label class="field">
+            <span>シフタ Lv <output id="shiftaOut">0</output></span>
+            <input type="range" id="shifta" min="0" max="30" value="0" />
+          </label>
+          <label class="field">
+            <span>ザルア Lv <output id="zalureOut">0</output></span>
+            <input type="range" id="zalure" min="0" max="30" value="0" />
+          </label>
+          <label class="field checkbox">
+            <input type="checkbox" id="ctxFrozen" />
+            <span>敵が凍結中</span>
+          </label>
+          <label class="field checkbox">
+            <input type="checkbox" id="ctxParalyzed" />
+            <span>敵が麻痺中</span>
+          </label>
+          <label class="field checkbox">
+            <input type="checkbox" id="ctxV501" />
+            <span>V501</span>
+          </label>
+          <label class="field checkbox">
+            <input type="checkbox" id="ctxV502" />
+            <span>V502</span>
+          </label>
+          <label class="field checkbox">
+            <input type="checkbox" id="ctxSmartlink" />
+            <span>Smartlink</span>
+          </label>
+          <label class="field checkbox">
+            <input type="checkbox" id="ctxCrits" checked />
+            <span>クリティカルを含める</span>
+          </label>
+          <label class="field span2">
+            <span>射撃距離 <small>(HU/FO のみペナルティ)</small></span>
+            <input type="number" id="ctxDistance" min="0" value="0" />
+          </label>
+        </div>
+      </fieldset>
+
+      <!-- コンボ -->
+      <fieldset class="panel panel-combo" id="panel-combo">
+        <legend>コンボ</legend>
+        <div class="combo-steps" id="comboSteps"></div>
+      </fieldset>
+    </div>
+
+    <!-- 結果 -->
+    <aside class="results" id="results" aria-live="polite">
+      <div class="panel result-panel">
+        <div class="result-error" id="resultError" hidden></div>
+
+        <div class="hpbar-block">
+          <div class="hpbar-head">
+            <span class="hpbar-label" id="hpbarEnemy">敵HP</span>
+            <span class="hpbar-value" id="hpbarValue"></span>
+          </div>
+          <div class="hpbar" id="hpbar" role="img" aria-label="敵HPに対する各ヒットの期待ダメージ"></div>
+          <div class="hpbar-legend">
+            <span><i class="sw sw-normal"></i>Normal</span>
+            <span><i class="sw sw-hard"></i>Hard</span>
+            <span><i class="sw sw-special"></i>Special</span>
+            <span class="legend-note">濃さ = 命中率</span>
+          </div>
+        </div>
+
+        <div class="result-stats">
+          <div class="stat stat-kill">
+            <span class="stat-label">キル確率</span>
+            <span class="stat-value" id="statKill">–</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">期待合計ダメージ</span>
+            <span class="stat-value" id="statExpected">–</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">全弾命中時 (平均)</span>
+            <span class="stat-value" id="statAvg">–</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">期待残りHP</span>
+            <span class="stat-value" id="statRemain">–</span>
+          </div>
+        </div>
+
+        <table class="hit-table">
+          <thead>
+            <tr>
+              <th>段</th>
+              <th>攻撃</th>
+              <th>命中率</th>
+              <th>ダメージ <small>min–max</small></th>
+              <th>期待値</th>
+            </tr>
+          </thead>
+          <tbody id="hitRows"></tbody>
+        </table>
+
+        <div class="result-notes" id="specialNotes"></div>
+        <div class="result-cost" id="resultCost" hidden></div>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="site-footer">
+    <p>
+      計算式・データの出典:
+      <a href="https://wiki.pioneer2.net/w/Game_mechanics" target="_blank" rel="noopener">Ephinea PSO Wiki — Game mechanics</a> /
+      <a href="https://wiki.pioneer2.net/w/Special_attacks" target="_blank" rel="noopener">Special attacks</a>
+    </p>
+  </footer>
+
+  <script type="module" src="/src/ui/main.ts"></script>
+</body>
+</html>

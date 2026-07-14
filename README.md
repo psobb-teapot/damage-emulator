@@ -20,9 +20,18 @@ TypeScript モジュールとして提供します。
 
 ```bash
 npm install
-npm test        # ユニットテスト
-npm run demo    # デモ実行
+npm test           # ユニットテスト
+npm run demo       # CLI デモ
+npm run dev        # ブラウザUI (開発サーバー) → http://localhost:5173
+npm run build:web  # ブラウザUIの静的ビルド (dist-web/)
 ```
+
+### ブラウザUI
+
+`npm run dev` で psostats.com/combo-calculator 相当の計算機UIが起動します。
+クラス・武器・敵・バフをフォームで設定すると即時に再計算され、
+敵HPバー上に各ヒットの期待ダメージ（色=攻撃タイプ、濃さ=命中率）、
+キル確率、ヒットごとのダメージ表が表示されます。
 
 ```ts
 import { simulateCombo, playerFromClass, WEAPONS, ENEMIES } from "pso-damage-emulator";
@@ -93,6 +102,7 @@ src/
 ├── accuracy.ts     # 命中率計算
 ├── special.ts      # 特殊攻撃の発動率・効果
 ├── combo.ts        # コンボシミュレーション (キル確率の分布計算)
+├── ui/             # ブラウザUI (Vite + vanilla TS)
 └── data/
     ├── classes.ts  # 全12クラスの Lv200 / 最大ステータス
     ├── specials.ts # 特殊攻撃の定義テーブル
