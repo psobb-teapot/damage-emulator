@@ -108,11 +108,11 @@
           <div class="quick-row">
             <label class="quick-field">
               <span>属性 % <small id="wpAttrMax"></small></span>
-              <input type="number" id="wpAttr" min="0" max="100" value="0" />
+              <input type="number" id="wpAttr" min="0" max="100" step="5" value="0" />
             </label>
             <label class="quick-field">
               <span>Hit % <small id="wpHitMax"></small></span>
-              <input type="number" id="wpHit" min="0" max="100" value="0" />
+              <input type="number" id="wpHit" min="0" max="100" step="5" value="0" />
             </label>
           </div>
           <details class="card-details">
@@ -400,7 +400,7 @@
       <div class="line-controls">
         <label class="quick-field line-hit">
           <span>想定 Hit% <output id="lineHitOut">0</output> <small>(武器のHit%とは独立に試せます)</small></span>
-          <input type="range" id="lineHit" min="0" max="100" value="0" />
+          <input type="range" id="lineHit" min="0" max="100" step="5" value="0" />
         </label>
         <label class="quick-field line-threshold">
           <span>撃破判定のしきい値 <small>(nヒット命中時にこの確率以上で倒せれば ✓)</small></span>

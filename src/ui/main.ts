@@ -919,11 +919,13 @@ function renderLineView(inputData: ComboInput): void {
     );
     const reqCells = reqs
       .map((req) => {
-        if (!Number.isFinite(req) || req > maxHitCap) {
-          return `<td class="num req-imp" title="この武器の Hit% 上限では命中100%にできない">不可</td>`;
+        // Hit% は 5% 単位でしか付かないため、入手可能な値へ切り上げて表示
+        const attainable = !Number.isFinite(req) ? Infinity : Math.ceil(req / 5) * 5;
+        if (attainable > maxHitCap) {
+          return `<td class="num req-imp" title="この武器の Hit% 上限では命中100%にできない (厳密値 ${Number.isFinite(req) ? req : "—"})">不可</td>`;
         }
-        const ok = currentHit >= req;
-        return `<td class="num ${ok ? "req-ok" : "req-ng"}" title="${ok ? "想定 Hit% で達成" : `Hit% を ${req} 以上にすると命中100%`}">${req}</td>`;
+        const ok = currentHit >= attainable;
+        return `<td class="num ${ok ? "req-ok" : "req-ng"}" title="${ok ? "想定 Hit% で達成" : `Hit% ${attainable} 以上で命中100%`}${attainable !== req ? ` (厳密値 ${req})` : ""}">${attainable}</td>`;
       })
       .join("");
 
@@ -1292,6 +1294,16 @@ $("autoComboBtn").addEventListener("click", () => {
     /* 入力不備時は render 側でエラー表示済み */
   }
 });
+
+// 属性% / Hit% はゲーム仕様どおり 5% 単位にスナップ
+for (const id of ["wpAttr", "wpHit"]) {
+  input(id).addEventListener("change", () => {
+    const el = input(id);
+    const max = Number(el.max || 100);
+    const snapped = Math.max(0, Math.min(max, Math.round(num(id) / 5) * 5));
+    if (String(snapped) !== el.value) el.value = String(snapped);
+  });
+}
 
 input("shifta").addEventListener("input", () => {
   $("shiftaOut").textContent = input("shifta").value;
