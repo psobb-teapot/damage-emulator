@@ -493,6 +493,116 @@ function updateChips(inputData: ComboInput): void {
   }
 }
 
+/* ================= 複数の敵との比較 ================= */
+
+let compareList: string[] = [];
+let compareSort: { col: "name" | "hp" | "avg" | "kill" | "acc" | null; asc: boolean } = {
+  col: null,
+  asc: false,
+};
+
+function addToCompare(keys: string[]): void {
+  for (const key of keys) {
+    if (!compareList.includes(key)) compareList.push(key);
+  }
+  render();
+}
+
+$("cmpAdd").addEventListener("click", () => {
+  const key = select("enPreset").value;
+  if (key !== "custom") addToCompare([key]);
+});
+for (const btn of document.querySelectorAll<HTMLButtonElement>("[data-cmp-type]")) {
+  btn.addEventListener("click", () => {
+    const type = btn.dataset.cmpType!;
+    addToCompare(
+      Object.entries(activeEnemies())
+        .filter(([, e]) => e.enemyType === type)
+        .map(([k]) => k),
+    );
+  });
+}
+$("cmpAll").addEventListener("click", () => addToCompare(Object.keys(activeEnemies())));
+$("cmpClear").addEventListener("click", () => {
+  compareList = [];
+  render();
+});
+
+for (const th of document.querySelectorAll<HTMLElement>(".compare-table th.sortable")) {
+  th.addEventListener("click", () => {
+    const col = th.dataset.sort as NonNullable<typeof compareSort.col>;
+    compareSort = { col, asc: compareSort.col === col ? !compareSort.asc : false };
+    render();
+  });
+}
+
+function renderCompare(inputData: ComboInput): void {
+  const panel = $("comparePanel");
+  if (compareList.length === 0) {
+    panel.hidden = true;
+    return;
+  }
+  panel.hidden = false;
+
+  const dataset = activeEnemies();
+  compareList = compareList.filter((key) => dataset[key]);
+  $("compareCount").textContent = String(compareList.length);
+
+  const rows = compareList.map((key) => {
+    const enemy = dataset[key]!;
+    const r = simulateCombo({ ...inputData, enemy });
+    const acc = r.hits.reduce((p, h) => p * (h.accuracy / 100), 1) * 100;
+    return {
+      key,
+      enemy,
+      avg: r.totals.avg,
+      kill: r.killProbability * 100,
+      acc,
+      pct: Math.min(100, (r.totals.avg / enemy.hp) * 100),
+    };
+  });
+
+  if (compareSort.col) {
+    const dir = compareSort.asc ? 1 : -1;
+    const col = compareSort.col;
+    rows.sort((a, b) => {
+      if (col === "name") return a.key.localeCompare(b.key) * dir;
+      if (col === "hp") return (a.enemy.hp - b.enemy.hp) * dir;
+      if (col === "avg") return (a.avg - b.avg) * dir;
+      if (col === "kill") return (a.kill - b.kill) * dir;
+      return (a.acc - b.acc) * dir;
+    });
+  }
+
+  const tbody = $("compareRows");
+  tbody.innerHTML = "";
+  for (const row of rows) {
+    const tr = document.createElement("tr");
+    tr.className = "compare-row" + (row.key === select("enPreset").value ? " row-active" : "");
+    const killClass = row.kill >= 99.95 ? "kill-hi" : row.kill <= 0.05 ? "kill-lo" : "";
+    tr.innerHTML = `
+      <td>${row.key} <span class="badge badge-muted">${row.enemy.enemyType ?? ""}</span></td>
+      <td class="num">${fmt(row.enemy.hp)}</td>
+      <td class="num">${fmt(row.avg)}</td>
+      <td class="pct-cell"><span class="pct-bar" style="width:${row.pct}%"></span><span class="pct-text">${row.pct.toFixed(0)}%</span></td>
+      <td class="num ${killClass}">${row.kill.toFixed(1)}%</td>
+      <td class="num">${row.acc.toFixed(1)}%</td>
+      <td><button type="button" class="cmp-remove" data-key="${row.key}" title="リストから外す">×</button></td>
+    `;
+    tr.addEventListener("click", () => {
+      select("enPreset").value = row.key;
+      applyEnemyPreset();
+      render();
+    });
+    tr.querySelector(".cmp-remove")!.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      compareList = compareList.filter((k) => k !== row.key);
+      render();
+    });
+    tbody.appendChild(tr);
+  }
+}
+
 /* ================= URL 共有 ================= */
 
 const STATE_FIELDS = [
@@ -513,6 +623,7 @@ function serializeState(): string {
     state[id] = el.type === "checkbox" ? ((el as HTMLInputElement).checked ? "1" : "0") : el.value;
   }
   for (let s = 1; s <= 3; s++) state[`combo${s}`] = checkedCombo(s);
+  if (compareList.length > 0) state["cmp"] = compareList.join("|");
   return btoa(unescape(encodeURIComponent(JSON.stringify(state))));
 }
 
@@ -529,6 +640,7 @@ function restoreState(encoded: string): boolean {
       const radio = comboRadio(s, state[`combo${s}`] ?? "none");
       if (radio) radio.checked = true;
     }
+    compareList = state["cmp"] ? state["cmp"].split("|") : [];
     return true;
   } catch {
     return false;
@@ -714,6 +826,7 @@ function render(): void {
     $("comboFramesOut").textContent =
       fr.frames != null ? `所要フレーム: ${fr.frames}F` : "所要フレーム: データなし";
 
+    renderCompare(inputData);
     syncUrl();
   } catch (e) {
     errorBox.hidden = false;

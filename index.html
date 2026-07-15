@@ -170,6 +170,17 @@
           <div class="card-title">敵 <small>(Ultimate)</small></div>
           <select id="enPreset" class="card-select" aria-label="敵"></select>
           <div class="card-summary" id="enSummary"></div>
+          <div class="compare-actions">
+            <button type="button" id="cmpAdd" title="この敵を比較リストへ追加">+ 比較に追加</button>
+            <span class="compare-actions-group" title="種族単位で比較リストへ一括追加">
+              <button type="button" data-cmp-type="Native">Native</button>
+              <button type="button" data-cmp-type="A.Beast">A.Beast</button>
+              <button type="button" data-cmp-type="Machine">Machine</button>
+              <button type="button" data-cmp-type="Dark">Dark</button>
+              <button type="button" id="cmpAll">全て</button>
+              <button type="button" id="cmpClear">クリア</button>
+            </span>
+          </div>
           <div class="quick-row">
             <label class="quick-check">
               <input type="checkbox" id="enSolo" />
@@ -322,6 +333,29 @@
         <div class="result-cost" id="resultCost" hidden></div>
       </div>
     </aside>
+
+    <!-- 複数の敵との比較 (psostats 相当) -->
+    <section class="panel compare-panel" id="comparePanel" hidden>
+      <div class="compare-head">
+        <span class="card-title">複数の敵で比較 <small>(<span id="compareCount">0</span>体 · 行クリックで詳細表示)</small></span>
+      </div>
+      <div class="compare-scroll">
+        <table class="hit-table compare-table">
+          <thead>
+            <tr>
+              <th data-sort="name" class="sortable">敵</th>
+              <th data-sort="hp" class="sortable">HP</th>
+              <th data-sort="avg" class="sortable">平均合計 <small>(全弾命中)</small></th>
+              <th>%HP</th>
+              <th data-sort="kill" class="sortable">キル確率</th>
+              <th data-sort="acc" class="sortable">総合命中率</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="compareRows"></tbody>
+        </table>
+      </div>
+    </section>
   </main>
 
   <footer class="site-footer">

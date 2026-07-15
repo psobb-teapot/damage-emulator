@@ -911,6 +911,126 @@ fieldset.panel {
   padding-top: 8px;
 }
 
+/* ---------- 複数の敵との比較 ---------- */
+
+.compare-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.compare-actions button {
+  font-family: var(--font-display);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  background: rgba(11, 20, 36, 0.6);
+  border: 1px solid var(--panel-edge);
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.compare-actions button:hover {
+  color: var(--photon);
+  border-color: var(--photon);
+}
+
+.compare-actions button:focus-visible {
+  outline: 2px solid var(--photon);
+  outline-offset: 1px;
+}
+
+#cmpAdd {
+  color: var(--photon);
+  border-color: rgba(82, 216, 239, 0.5);
+}
+
+.compare-actions-group {
+  display: inline-flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.compare-panel {
+  grid-column: 1 / -1;
+}
+
+.compare-head {
+  margin-bottom: 10px;
+}
+
+.compare-scroll {
+  overflow-x: auto;
+}
+
+.compare-table {
+  min-width: 720px;
+}
+
+.compare-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.compare-table th.sortable:hover {
+  color: var(--photon);
+}
+
+.compare-row {
+  cursor: pointer;
+}
+
+.compare-row:hover td {
+  background: rgba(82, 216, 239, 0.06);
+}
+
+.compare-row.row-active td {
+  background: rgba(82, 216, 239, 0.1);
+}
+
+.pct-cell {
+  position: relative;
+  min-width: 110px;
+}
+
+.pct-bar {
+  position: absolute;
+  inset: 3px auto 3px 0;
+  background: rgba(255, 184, 77, 0.25);
+  border-right: 1px solid var(--amber);
+}
+
+.pct-text {
+  position: relative;
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+
+.kill-hi {
+  color: var(--amber);
+}
+
+.kill-lo {
+  color: var(--muted);
+}
+
+.cmp-remove {
+  font-size: 12px;
+  color: var(--muted);
+  background: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+  padding: 1px 6px;
+}
+
+.cmp-remove:hover {
+  color: var(--rare);
+  border-color: var(--rare);
+}
+
 /* ---------- フッター ---------- */
 
 .site-footer {
