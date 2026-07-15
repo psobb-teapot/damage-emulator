@@ -828,6 +828,22 @@ fieldset.panel {
   text-shadow: 0 0 16px rgba(255, 184, 77, 0.45);
 }
 
+.stat-label small {
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+
+.stat-note {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.stat-note.note-warn {
+  color: var(--amber);
+}
+
 /* ヒットテーブル */
 
 .hit-table {

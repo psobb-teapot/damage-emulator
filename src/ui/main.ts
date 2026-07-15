@@ -8,7 +8,7 @@ import { WEAPONS } from "../data/weapons.js";
 import { equipmentBonus, type PossUnit } from "../equipment.js";
 import { comboFrames } from "../frames.js";
 import { atpRange, effectiveDfp, totalAta } from "../stats.js";
-import { DEFAULT_HITS_PER_ATTACK } from "../constants.js";
+import { criticalChance, DEFAULT_HITS_PER_ATTACK } from "../constants.js";
 import type {
   AttackType,
   ComboAttack,
@@ -619,6 +619,34 @@ function render(): void {
     const killPct = result.killProbability * 100;
     $("statKill").textContent = `${killPct.toFixed(killPct > 99 && killPct < 100 ? 2 : 1)}%`;
     $("statKill").parentElement!.classList.toggle("kill-sure", killPct >= 99.95);
+
+    // クリティカル前提の明示と内訳
+    const critsOn = inputData.context?.includeCriticals ?? true;
+    const critPct = criticalChance(inputData.player.lck);
+    $("statKillLabel").innerHTML = critsOn
+      ? `キル確率 <small>クリ込み (LCK ${inputData.player.lck} → ${critPct}%)</small>`
+      : `キル確率 <small>クリなし</small>`;
+    const killNote = $("statKillNote");
+    if (critsOn && killPct > 0.05) {
+      const noCrit = simulateCombo({
+        ...inputData,
+        context: { ...inputData.context, includeCriticals: false },
+      });
+      const noCritPct = noCrit.killProbability * 100;
+      if (noCritPct <= 0.05) {
+        killNote.hidden = false;
+        killNote.textContent = "クリティカル必須 — クリなしでは撃破不可";
+        killNote.classList.add("note-warn");
+      } else if (killPct - noCritPct >= 0.1) {
+        killNote.hidden = false;
+        killNote.textContent = `うちクリティカル依存 +${(killPct - noCritPct).toFixed(1)}% (クリなし ${noCritPct.toFixed(1)}%)`;
+        killNote.classList.remove("note-warn");
+      } else {
+        killNote.hidden = true;
+      }
+    } else {
+      killNote.hidden = true;
+    }
     $("statExpected").textContent = fmt(result.totals.expected);
     $("statAvg").textContent = fmt(result.totals.avg);
     $("statRemain").textContent = fmt(result.expectedRemainingHp);
