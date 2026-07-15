@@ -382,8 +382,11 @@
     <!-- タブ3: 確定ライン (逆算) -->
     <section class="view-section panel" id="view-line" hidden>
       <p class="view-desc">
-        命中100%に必要な Hit% (コンボ段ごと) と、最小ロール・クリなしで確定撃破できるヒット数を逆算します。
-        判定: <span class="hit-ok">✓ 確定</span> / <span class="hit-part">△ ダメージは足りるが想定Hit%では命中不確定</span> / <span class="hit-no">× ダメージ不足</span>
+        命中100%に必要な Hit% (コンボ段ごと) と、n ヒット命中したときの撃破確率を逆算します。
+        判定: <span class="hit-ok">✓ しきい値以上で撃破</span> /
+        <span class="hit-ok">数値% = 撃破確率</span> (緑=しきい値以上) /
+        <span class="hit-part">アンバー = 想定Hit%では命中不確定</span> /
+        <span class="hit-no">× 撃破不可</span>
       </p>
       <div class="cond-bar" role="group" aria-label="敵の状態 (全タブ共通・上部カードと連動)">
         <span class="cond-label">敵の状態:</span>
@@ -397,6 +400,16 @@
         <label class="quick-field line-hit">
           <span>想定 Hit% <output id="lineHitOut">0</output> <small>(武器のHit%とは独立に試せます)</small></span>
           <input type="range" id="lineHit" min="0" max="100" value="0" />
+        </label>
+        <label class="quick-field line-threshold">
+          <span>撃破判定のしきい値 <small>(nヒット命中時にこの確率以上で倒せれば ✓)</small></span>
+          <select id="lineThreshold">
+            <option value="100" selected>確定 (100% · 最小ロール)</option>
+            <option value="95">95% 以上</option>
+            <option value="90">90% 以上</option>
+            <option value="75">75% 以上</option>
+            <option value="50">50% 以上</option>
+          </select>
         </label>
       </div>
       <div class="compare-actions">

@@ -9,6 +9,7 @@ import { SPECIALS } from "../data/specials.js";
 import { WEAPONS } from "../data/weapons.js";
 import { equipmentBonus, type PossUnit } from "../equipment.js";
 import { comboFrames } from "../frames.js";
+import { killProbabilityByHits } from "../probability.js";
 import { atpRange, effectiveDfp, totalAta } from "../stats.js";
 import { criticalChance, DEFAULT_HITS_PER_ATTACK } from "../constants.js";
 import type {
@@ -908,21 +909,36 @@ function renderLineView(inputData: ComboInput): void {
       })
       .join("");
 
-    const minDmg = damageRange(player, weapon, enemy, hitsType, ctx).min;
+    const dmg = damageRange(player, weapon, enemy, hitsType, ctx);
     const hitReq = reqs[hitsStep - 1]!;
     const accOk = Number.isFinite(hitReq) && hitReq <= maxHitCap && currentHit >= hitReq;
+    const threshold = num("lineThreshold", 100);
+    const critC = (ctx.includeCriticals ?? true) ? criticalChance(player.lck) / 100 : 0;
     let hitsCells: string;
     if (maxHits > 1) {
+      const pByHits = killProbabilityByHits(dmg.min, dmg.max, enemy.hp, maxHits, critC);
       hitsCells = Array.from({ length: maxHits }, (_, i) => {
-        const n = i + 1;
-        const dmgOk = minDmg > 0 && minDmg * n >= enemy.hp;
-        if (!dmgOk) return `<td class="num hit-no" title="最小ロールではダメージ不足">×</td>`;
-        if (!accOk) return `<td class="num hit-part" title="ダメージは足りるが想定Hit%では命中100%でない">△</td>`;
-        return `<td class="num hit-ok" title="確定撃破 (min roll × ${n}ヒット ≥ HP・命中100%)">✓</td>`;
+        const p = (pByHits[i] ?? 0) * 100;
+        if (p <= 0.005) return `<td class="num hit-no" title="${i + 1}ヒットでは撃破不可">×</td>`;
+        const sure = p >= 99.995;
+        const meets = p >= threshold - 1e-9;
+        const label = sure ? "✓" : p >= 99.5 ? ">99%" : `${p < 10 ? p.toFixed(1) : Math.round(p)}%`;
+        const cls = !meets ? "hit-low" : accOk ? "hit-ok" : "hit-part";
+        const title = `${i + 1}ヒット命中時の撃破確率 ${p.toFixed(1)}%` +
+          (meets && !accOk ? " (想定Hit%では命中100%でない)" : "") +
+          (!meets ? ` (しきい値 ${threshold}% 未満)` : "");
+        return `<td class="num ${cls}" title="${title}">${label}</td>`;
       }).join("");
     } else {
-      const n = minHitsToKill(player, weapon, enemy, hitsType, ctx);
-      hitsCells = `<td class="num">${n != null ? `${n}発` : "–"}</td>`;
+      // 単発武器: しきい値を満たす最小ヒット数
+      if (threshold >= 100) {
+        const n = minHitsToKill(player, weapon, enemy, hitsType, ctx);
+        hitsCells = `<td class="num">${n != null ? `${n}発` : "–"}</td>`;
+      } else {
+        const pByHits = killProbabilityByHits(dmg.min, dmg.max, enemy.hp, 30, critC);
+        const idx = pByHits.findIndex((p) => p * 100 >= threshold - 1e-9);
+        hitsCells = `<td class="num">${idx >= 0 ? `${idx + 1}発` : "–"}</td>`;
+      }
     }
 
     const tr = document.createElement("tr");
@@ -958,7 +974,7 @@ const STATE_FIELDS = [
   "shifta", "zalure", "ctxDistance", "ctxFrozen", "ctxParalyzed", "ctxCrits",
   "ctxV501", "ctxV502", "ctxSmartlink", "ctxSnGlitch",
   "frame", "barrier", "possUnit", "commanderBlade", "armorAtp", "armorAta",
-  "hits1", "hits2", "hits3", "lineHit",
+  "hits1", "hits2", "hits3", "lineHit", "lineThreshold",
 ] as const;
 
 function serializeState(): string {

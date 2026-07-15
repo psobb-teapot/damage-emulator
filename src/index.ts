@@ -14,6 +14,7 @@ export {
   type EquipmentSelection,
 } from "./equipment.js";
 export { comboFrames, frameDataFor, type ComboFramesResult } from "./frames.js";
+export { killProbabilityByHits } from "./probability.js";
 export { findBestCombo, type AutoComboResult } from "./autoCombo.js";
 export {
   FRAME_DATA,

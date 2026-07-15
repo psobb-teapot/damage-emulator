@@ -1364,6 +1364,41 @@ fieldset.panel {
   opacity: 0.5;
 }
 
+.hit-low {
+  color: var(--muted);
+}
+
+.line-controls {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  max-width: none;
+}
+
+.line-hit,
+.line-threshold {
+  flex: 1 1 280px;
+  max-width: 460px;
+}
+
+.line-threshold {
+  border: 1px solid rgba(82, 216, 239, 0.35);
+  background: rgba(82, 216, 239, 0.04);
+  padding: 8px 10px;
+}
+
+.line-threshold > span {
+  color: var(--photon);
+}
+
+.line-threshold select {
+  font: 600 13px var(--font-display);
+  color: var(--ink);
+  background: rgba(11, 20, 36, 0.85);
+  border: 1px solid var(--panel-edge);
+  padding: 5px 8px;
+}
+
 /* ---------- フッター ---------- */
 
 .site-footer {
