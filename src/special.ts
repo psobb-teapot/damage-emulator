@@ -91,7 +91,10 @@ export function evaluateSpecial(
       if (enemy.isBoss || (special.category === "paralysis" && enemy.isMachine)) {
         return { name: special.name, category: special.category, activationChance: 0, effect: "この敵には無効" };
       }
-      const chance = clampPct(clampPct((power - (enemy.esp ?? 0)) * eff) * unitBoost(context, false));
+      const chance =
+        special.fixedActivation != null
+          ? clampPct(special.fixedActivation * unitBoost(context, false))
+          : clampPct(clampPct((power - (enemy.esp ?? 0)) * eff) * unitBoost(context, false));
       const effect =
         special.category === "paralysis"
           ? "発動時に麻痺 (敵EVP×0.85)"

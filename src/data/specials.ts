@@ -79,6 +79,22 @@ export const SPECIALS: Record<string, SpecialDefinition> = {
     costPerSwing: "Meseta 10,000",
   },
 
+  // 炎ダメージ系: 命中時に固定炎ダメージ (Power × (100 − 敵EFR) / 100、
+  // Power はプレイヤーLv依存: Heat (Lv−1)/4+40 … Burning (Lv−1)+100)。
+  // 敵の EFR/ETH は収録データに無いため追加ダメージは算出しない
+  // (ATP 特殊ダメージ 0.5x のみ扱う)
+  Heat: { name: "Heat", category: "elemental" },
+  Fire: { name: "Fire", category: "elemental" },
+  Flame: { name: "Flame", category: "elemental" },
+  Burning: { name: "Burning", category: "elemental" },
+
+  // 雷ダメージ系: 固定雷ダメージ + ショック
+  // (発動率は難易度固定: Ultimate 2.5% / それ以外 6.67%、V501/502 で1.5倍)
+  Shock: { name: "Shock", category: "shock", fixedActivation: 2.5 },
+  Thunder: { name: "Thunder", category: "shock", fixedActivation: 2.5 },
+  Storm: { name: "Storm", category: "shock", fixedActivation: 2.5 },
+  Tempest: { name: "Tempest", category: "shock", fixedActivation: 2.5 },
+
   // ---- 武器固有の特殊 ----
   // ダメージ倍率は psostats.com の実装値そのまま (共通係数 0.9 折り込み済み)
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { evaluateSpecial } from "../src/index.js";
+import { evaluateSpecial, resolveSpecial } from "../src/index.js";
 import type { Enemy, PlayerStats, Weapon } from "../src/index.js";
 
 const player: PlayerStats = {
@@ -96,5 +96,22 @@ describe("evaluateSpecial", () => {
   it("Gush: HP吸収は min(17% × maxHp, 120) = 120", () => {
     const r = evaluateSpecial(player, weaponWith("Gush"), enemy);
     expect(r?.effect).toContain("120");
+  });
+});
+
+describe("ゲームが記録しうる全特殊名の解決", () => {
+  // client (psobb.lisp +weapon-specials+) が装備表示に載せうる全40種
+  const GAME_SPECIALS = [
+    "Draw", "Drain", "Fill", "Gush", "Heart", "Mind", "Soul", "Geist",
+    "Master's", "Lord's", "King's", "Charge", "Spirit", "Berserk",
+    "Ice", "Frost", "Freeze", "Blizzard", "Bind", "Hold", "Seize", "Arrest",
+    "Heat", "Fire", "Flame", "Burning", "Shock", "Thunder", "Storm", "Tempest",
+    "Dim", "Shadow", "Dark", "Hell", "Panic", "Riot", "Havoc", "Chaos",
+    "Devil's", "Demon's",
+  ];
+  it("resolveSpecial が例外なく解決できる", () => {
+    for (const name of GAME_SPECIALS) {
+      expect(resolveSpecial(name), name).toBeTruthy();
+    }
   });
 });
