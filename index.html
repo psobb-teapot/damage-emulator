@@ -167,9 +167,7 @@
         </div>
 
         <div class="panel selector-card">
-          <div class="card-title">敵 <small>(Ultimate)</small></div>
-          <select id="enPreset" class="card-select" aria-label="敵"></select>
-          <div class="card-summary" id="enSummary"></div>
+          <div class="card-title">敵の状態 <small>(全タブ共通)</small></div>
           <div class="quick-row">
             <label class="quick-check">
               <input type="checkbox" id="enSolo" />
@@ -192,48 +190,7 @@
               <span>麻痺中 <small>(EVP×0.85)</small></span>
             </label>
           </div>
-          <details class="card-details">
-            <summary>詳細設定</summary>
-            <div class="field-grid">
-              <label class="field">
-                <span>HP</span>
-                <input type="number" id="enHp" min="1" />
-              </label>
-              <label class="field">
-                <span>難易度</span>
-                <select id="enDifficulty">
-                  <option value="normal">Normal</option>
-                  <option value="hard">Hard</option>
-                  <option value="vhard">Very Hard</option>
-                  <option value="ultimate" selected>Ultimate</option>
-                </select>
-              </label>
-              <label class="field">
-                <span>DFP</span>
-                <input type="number" id="enDfp" min="0" />
-              </label>
-              <label class="field">
-                <span>EVP</span>
-                <input type="number" id="enEvp" min="0" />
-              </label>
-              <label class="field">
-                <span>EDK <small>(即死耐性)</small></span>
-                <input type="number" id="enEdk" min="0" />
-              </label>
-              <label class="field">
-                <span>ESP <small>(異常耐性)</small></span>
-                <input type="number" id="enEsp" min="0" />
-              </label>
-              <label class="field checkbox">
-                <input type="checkbox" id="enMachine" />
-                <span>機械系</span>
-              </label>
-              <label class="field checkbox">
-                <input type="checkbox" id="enBoss" />
-                <span>ボス</span>
-              </label>
-            </div>
-          </details>
+          <p class="card-note">凍結・麻痺・ザルアは比較系タブの全敵にも適用されます</p>
         </div>
       </section>
 
@@ -274,6 +231,54 @@
 
     <!-- タブ1: 単体詳細 -->
     <section class="view-section" id="view-detail" aria-live="polite">
+      <div class="detail-grid">
+      <div class="panel selector-card" id="detailEnemyCard">
+        <div class="card-title">対象の敵 <small>(Ultimate)</small></div>
+        <select id="enPreset" class="card-select" aria-label="敵"></select>
+        <div class="card-summary" id="enSummary"></div>
+        <details class="card-details">
+          <summary>ステータス上書き</summary>
+          <div class="field-grid">
+            <label class="field">
+              <span>HP</span>
+              <input type="number" id="enHp" min="1" />
+            </label>
+            <label class="field">
+              <span>難易度</span>
+              <select id="enDifficulty">
+                <option value="normal">Normal</option>
+                <option value="hard">Hard</option>
+                <option value="vhard">Very Hard</option>
+                <option value="ultimate" selected>Ultimate</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>DFP</span>
+              <input type="number" id="enDfp" min="0" />
+            </label>
+            <label class="field">
+              <span>EVP</span>
+              <input type="number" id="enEvp" min="0" />
+            </label>
+            <label class="field">
+              <span>EDK <small>(即死耐性)</small></span>
+              <input type="number" id="enEdk" min="0" />
+            </label>
+            <label class="field">
+              <span>ESP <small>(異常耐性)</small></span>
+              <input type="number" id="enEsp" min="0" />
+            </label>
+            <label class="field checkbox">
+              <input type="checkbox" id="enMachine" />
+              <span>機械系</span>
+            </label>
+            <label class="field checkbox">
+              <input type="checkbox" id="enBoss" />
+              <span>ボス</span>
+            </label>
+          </div>
+        </details>
+      </div>
       <div class="panel result-panel">
         <div class="result-error" id="resultError" hidden></div>
 
@@ -329,13 +334,15 @@
         <div class="result-notes" id="specialNotes"></div>
         <div class="result-cost" id="resultCost" hidden></div>
       </div>
+      </div>
     </section>
 
     <!-- タブ2: 複数の敵 -->
     <section class="view-section panel" id="view-enemies" hidden>
       <p class="view-desc">同じキャラ・装備・コンボで複数の敵に対する結果を一覧します。行クリックで単体詳細へ。</p>
       <div class="compare-actions">
-        <button type="button" class="cmp-add-current" title="敵カードで選択中の敵を追加">+ 選択中の敵を追加</button>
+        <select class="cmp-picker" aria-label="追加する敵"></select>
+        <button type="button" class="cmp-add-picked">+ 追加</button>
         <span class="compare-actions-group" title="種族単位で一括追加">
           <button type="button" data-cmp-type="Native">Native</button>
           <button type="button" data-cmp-type="A.Beast">A.Beast</button>
@@ -377,7 +384,8 @@
         </label>
       </div>
       <div class="compare-actions">
-        <button type="button" class="cmp-add-current" title="敵カードで選択中の敵を追加">+ 選択中の敵を追加</button>
+        <select class="cmp-picker" aria-label="追加する敵"></select>
+        <button type="button" class="cmp-add-picked">+ 追加</button>
         <span class="compare-actions-group" title="種族単位で一括追加">
           <button type="button" data-cmp-type="Native">Native</button>
           <button type="button" data-cmp-type="A.Beast">A.Beast</button>
@@ -399,8 +407,10 @@
     <!-- タブ4: クラス比較 -->
     <section class="view-section panel" id="view-classes" hidden>
       <p class="view-desc">
-        現在の武器・装備・敵に対する全12クラスの最適コンボ
+        <span id="clsTargetNote" class="cls-target"></span>
+        現在の武器・装備に対する全12クラスの最適コンボ
         (Lv200 ステータス基準・装備可否は未判定)。行クリックでそのクラスとコンボを反映します。
+        対象の敵は「単体詳細」タブで変更できます。
       </p>
       <div class="compare-scroll">
         <table class="hit-table compare-table">

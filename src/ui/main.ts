@@ -548,6 +548,9 @@ document.querySelector(".view-tabs")!.addEventListener("click", (ev) => {
 /* ================= 全クラスで最適コンボを比較 ================= */
 
 function renderClassCompare(inputData: ComboInput): void {
+  $("clsTargetNote").textContent = `対象の敵: ${inputData.enemy.name}${
+    input("enSolo").checked ? " (一人用)" : ""
+  } — `;
   const rows = Object.keys(CLASSES)
     .map((clsName) => {
       const armor = armorTotals(inputData.weapon);
@@ -627,11 +630,31 @@ function addToCompare(keys: string[]): void {
   render();
 }
 
-// 追加ボタン群は「複数の敵」「確定ライン」両タブに同じものがある
-for (const btn of document.querySelectorAll<HTMLButtonElement>(".cmp-add-current")) {
+// 追加UI (敵ピッカー+ボタン) は「複数の敵」「確定ライン」両タブに同じものがある
+{
+  const groups = new Map<string, [string, string][]>();
+  for (const [key, e] of Object.entries(ENEMIES)) {
+    const label = `Ep${e.episode} ${e.location ?? "?"}`;
+    if (!groups.has(label)) groups.set(label, []);
+  }
+  // ENEMY_ORDER と同じ並びで構築
+  const ordered = [...Object.entries(ENEMIES)].sort(
+    ([a], [b]) => (ENEMY_ORDER.get(a) ?? 999) - (ENEMY_ORDER.get(b) ?? 999),
+  );
+  const pickerGroups = new Map<string, [string, string][]>();
+  for (const [key, e] of ordered) {
+    const label = `Ep${e.episode} ${e.location ?? "?"}`;
+    if (!pickerGroups.has(label)) pickerGroups.set(label, []);
+    pickerGroups.get(label)!.push([key, key]);
+  }
+  for (const picker of document.querySelectorAll<HTMLSelectElement>(".cmp-picker")) {
+    fillGroupedSelect(picker, [], pickerGroups);
+  }
+}
+for (const btn of document.querySelectorAll<HTMLButtonElement>(".cmp-add-picked")) {
   btn.addEventListener("click", () => {
-    const key = select("enPreset").value;
-    if (key !== "custom") addToCompare([key]);
+    const picker = btn.parentElement!.querySelector<HTMLSelectElement>(".cmp-picker");
+    if (picker?.value) addToCompare([picker.value]);
   });
 }
 for (const btn of document.querySelectorAll<HTMLButtonElement>("[data-cmp-type]")) {
