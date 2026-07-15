@@ -63,3 +63,19 @@ export function damageRange(
 export function criticalDamage(damage: number): number {
   return Math.floor(damage * CRITICAL_MULTIPLIER);
 }
+
+/**
+ * 確定撃破 (最小ロール・クリティカルなし) に必要なヒット数。
+ * 最小ダメージが 0 の場合は null (何発当てても確定しない)。
+ */
+export function minHitsToKill(
+  player: PlayerStats,
+  weapon: Weapon,
+  enemy: Enemy,
+  attackType: AttackType,
+  context: CombatContext = {},
+): number | null {
+  const min = damageRange(player, weapon, enemy, attackType, context).min;
+  if (min <= 0) return null;
+  return Math.ceil(enemy.hp / min);
+}

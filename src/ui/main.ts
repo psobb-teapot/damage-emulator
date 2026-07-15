@@ -1,7 +1,9 @@
+import { requiredHitPercent } from "../accuracy.js";
 import { findBestCombo } from "../autoCombo.js";
 import { simulateCombo } from "../combo.js";
+import { damageRange, minHitsToKill } from "../damage.js";
 import { BARRIERS, FRAMES } from "../data/armor.gen.js";
-import { CLASSES } from "../data/classes.js";
+import { CLASSES, playerFromClass } from "../data/classes.js";
 import { ENEMIES, ENEMIES_ONE_PERSON } from "../data/enemies.js";
 import { SPECIALS } from "../data/specials.js";
 import { WEAPONS } from "../data/weapons.js";
@@ -365,9 +367,8 @@ function readWeapon(): Weapon {
   };
 }
 
-function readInput(): ComboInput {
-  const cls = CLASSES[select("cls").value];
-  const weapon = readWeapon();
+/** 現在の装備選択による防具 ATP/ATA 合計 (フレーム+バリア+セット効果+追加値) */
+function armorTotals(weapon: Weapon): { atp: number; ata: number } {
   const frame = FRAMES[select("frame").value] ?? { atp: 0, ata: 0 };
   const barrier = BARRIERS[select("barrier").value] ?? { atp: 0, ata: 0 };
   const setBonus = equipmentBonus({
@@ -377,6 +378,16 @@ function readInput(): ComboInput {
     possUnit: (select("possUnit").value || null) as PossUnit | null,
     commanderBlade: input("commanderBlade").checked,
   });
+  return {
+    atp: frame.atp + barrier.atp + setBonus.atp + num("armorAtp"),
+    ata: frame.ata + barrier.ata + setBonus.ata + num("armorAta"),
+  };
+}
+
+function readInput(): ComboInput {
+  const cls = CLASSES[select("cls").value];
+  const weapon = readWeapon();
+  const armor = armorTotals(weapon);
 
   return {
     player: {
@@ -385,8 +396,8 @@ function readInput(): ComboInput {
       lck: num("lck"),
       classCategory: cls?.category ?? "hunter",
       isAndroid: cls?.isAndroid ?? false,
-      armorAtp: frame.atp + barrier.atp + setBonus.atp + num("armorAtp"),
-      armorAta: frame.ata + barrier.ata + setBonus.ata + num("armorAta"),
+      armorAtp: armor.atp,
+      armorAta: armor.ata,
       maxHp: cls ? (input("useMax").checked ? cls.max.hp : cls.lv200.hp) : undefined,
       maxTp: cls ? (input("useMax").checked ? cls.max.tp : cls.lv200.tp) : undefined,
     },
@@ -512,13 +523,111 @@ function updateChips(inputData: ComboInput): void {
   }
 }
 
+/* ================= 全クラスで最適コンボを比較 ================= */
+
+let classCompareVisible = false;
+
+$("clsCompareBtn").addEventListener("click", () => {
+  classCompareVisible = !classCompareVisible;
+  render();
+});
+$("clsCompareClose").addEventListener("click", () => {
+  classCompareVisible = false;
+  render();
+});
+
+function renderClassCompare(inputData: ComboInput): void {
+  const panel = $("classComparePanel");
+  if (!classCompareVisible) {
+    panel.hidden = true;
+    return;
+  }
+  panel.hidden = false;
+
+  const rows = Object.keys(CLASSES)
+    .map((clsName) => {
+      const armor = armorTotals(inputData.weapon);
+      const player = {
+        ...playerFromClass(clsName, {
+          useMaxStats: input("useMax").checked,
+          lck: num("lck"),
+        }),
+        armorAtp: armor.atp,
+        armorAta: armor.ata,
+      };
+      const best = findBestCombo(
+        player, inputData.weapon, inputData.enemy, clsName, inputData.context ?? {},
+      );
+      if (!best) return null;
+      const sim = simulateCombo({
+        player,
+        weapon: inputData.weapon,
+        enemy: inputData.enemy,
+        attacks: best.attacks.map((type) => ({ type })),
+        context: inputData.context,
+      });
+      return { clsName, best, kill: sim.killProbability * 100 };
+    })
+    .filter((r): r is NonNullable<typeof r> => r !== null);
+
+  rows.sort((a, b) => {
+    if (b.kill !== a.kill) return b.kill - a.kill;
+    if (b.best.totalDamage !== a.best.totalDamage) return b.best.totalDamage - a.best.totalDamage;
+    return (a.best.frames ?? 9999) - (b.best.frames ?? 9999);
+  });
+
+  const tbody = $("classCompareRows");
+  tbody.innerHTML = "";
+  rows.forEach((row, i) => {
+    const tr = document.createElement("tr");
+    tr.className =
+      "compare-row" + (row.clsName === select("cls").value ? " row-active" : "");
+    const comboLabel = row.best.attacks.map((t) => ATTACK_LABELS[t]).join("→");
+    const killClass = row.kill >= 99.95 ? "kill-hi" : row.kill <= 0.05 ? "kill-lo" : "";
+    tr.innerHTML = `
+      <td>${i === 0 ? "★ " : ""}${row.clsName}</td>
+      <td class="num">${comboLabel}</td>
+      <td class="num">${fmt(row.best.totalDamage)}</td>
+      <td class="num ${killClass}">${row.kill.toFixed(1)}%</td>
+      <td class="num">${row.best.overallAccuracy.toFixed(1)}%</td>
+      <td class="num">${row.best.frames != null ? `${row.best.frames}F` : "–"}</td>
+    `;
+    tr.addEventListener("click", () => {
+      select("cls").value = row.clsName;
+      applyClassPreset();
+      for (let step = 1; step <= 3; step++) {
+        const type = row.best.attacks[step - 1] ?? "none";
+        const radio = comboRadio(step, type);
+        if (radio) radio.checked = true;
+        input(`hits${step}`).value = "";
+      }
+      render();
+    });
+    tbody.appendChild(tr);
+  });
+}
+
 /* ================= 複数の敵との比較 ================= */
 
 let compareList: string[] = [];
+let compareMode: "result" | "reverse" = "result";
 let compareSort: { col: "name" | "hp" | "avg" | "kill" | "acc" | null; asc: boolean } = {
   col: null,
   asc: false,
 };
+
+$("cmpModeResult").addEventListener("click", () => {
+  compareMode = "result";
+  $("cmpModeResult").classList.add("mode-active");
+  $("cmpModeReverse").classList.remove("mode-active");
+  render();
+});
+$("cmpModeReverse").addEventListener("click", () => {
+  compareMode = "reverse";
+  $("cmpModeReverse").classList.add("mode-active");
+  $("cmpModeResult").classList.remove("mode-active");
+  render();
+});
 
 function addToCompare(keys: string[]): void {
   for (const key of keys) {
@@ -547,16 +656,28 @@ $("cmpClear").addEventListener("click", () => {
   render();
 });
 
-for (const th of document.querySelectorAll<HTMLElement>(".compare-table th.sortable")) {
-  th.addEventListener("click", () => {
-    const col = th.dataset.sort as NonNullable<typeof compareSort.col>;
-    // クリックごとに 降順 → 昇順 → エリア順 (既定) を循環
-    if (compareSort.col !== col) compareSort = { col, asc: false };
-    else if (!compareSort.asc) compareSort = { col, asc: true };
-    else compareSort = { col: null, asc: false };
-    render();
-  });
-}
+const RESULT_HEAD_HTML = `
+  <tr>
+    <th data-sort="name" class="sortable">敵</th>
+    <th data-sort="hp" class="sortable">HP</th>
+    <th data-sort="avg" class="sortable">平均合計 <small>(全弾命中)</small></th>
+    <th>%HP</th>
+    <th data-sort="kill" class="sortable">キル確率</th>
+    <th data-sort="acc" class="sortable">総合命中率</th>
+    <th></th>
+  </tr>`;
+
+// ソートはヘッダへの委譲で処理 (逆算モードではソートなし・エリア順固定)
+$("compareHead").addEventListener("click", (ev) => {
+  const th = (ev.target as HTMLElement).closest<HTMLElement>("th[data-sort]");
+  if (!th || compareMode !== "result") return;
+  const col = th.dataset.sort as NonNullable<typeof compareSort.col>;
+  // クリックごとに 降順 → 昇順 → エリア順 (既定) を循環
+  if (compareSort.col !== col) compareSort = { col, asc: false };
+  else if (!compareSort.asc) compareSort = { col, asc: true };
+  else compareSort = { col: null, asc: false };
+  render();
+});
 
 function renderCompare(inputData: ComboInput): void {
   const panel = $("comparePanel");
@@ -569,6 +690,12 @@ function renderCompare(inputData: ComboInput): void {
   const dataset = activeEnemies();
   compareList = compareList.filter((key) => dataset[key]);
   $("compareCount").textContent = String(compareList.length);
+
+  if (compareMode === "reverse") {
+    renderCompareReverse(inputData, dataset);
+    return;
+  }
+  $("compareHead").innerHTML = RESULT_HEAD_HTML;
 
   const rows = compareList.map((key) => {
     const enemy = dataset[key]!;
@@ -638,6 +765,119 @@ function renderCompare(inputData: ComboInput): void {
     tr.querySelector(".cmp-remove")!.addEventListener("click", (ev) => {
       ev.stopPropagation();
       compareList = compareList.filter((k) => k !== row.key);
+      render();
+    });
+    tbody.appendChild(tr);
+  }
+}
+
+/** 確定ライン (逆算) モードの描画 */
+function renderCompareReverse(
+  inputData: ComboInput,
+  dataset: Record<string, import("../types.js").Enemy>,
+): void {
+  const { player, weapon, attacks } = inputData;
+  const ctx = inputData.context ?? {};
+  const currentHit = weapon.hitPercent ?? 0;
+  const maxHitCap = WEAPONS[select("wpPreset").value]?.maxHitPercent ?? 100;
+
+  const hitsOf = (a: (typeof attacks)[number]): number =>
+    a.hits ??
+    (a.type === "special"
+      ? (weapon.specialHits ?? weapon.hitsPerAttack ?? DEFAULT_HITS_PER_ATTACK[weapon.kind])
+      : (weapon.hitsPerAttack ?? DEFAULT_HITS_PER_ATTACK[weapon.kind]));
+
+  // ヒット数列の対象 = 最多ヒットの段 (Dark Flow の特殊5本など)
+  let hitsType = attacks[0]!.type;
+  let hitsStep = 1;
+  let maxHits = hitsOf(attacks[0]!);
+  attacks.forEach((a, i) => {
+    const h = hitsOf(a);
+    if (h > maxHits) {
+      maxHits = h;
+      hitsType = a.type;
+      hitsStep = i + 1;
+    }
+  });
+
+  const stepThs = attacks
+    .map((a, i) => `<th>${i + 1}段目${ATTACK_LABELS[a.type]}<br><small>必要Hit%</small></th>`)
+    .join("");
+  const hitsThs =
+    maxHits > 1
+      ? Array.from(
+          { length: maxHits },
+          (_, i) => `<th title="最小ロール・クリなしで確定撃破できるか">${ATTACK_LABELS[hitsType]}×${i + 1}</th>`,
+        ).join("")
+      : `<th title="最小ロール・クリなしで確定撃破に必要なヒット数">確殺ヒット数 <small>(${ATTACK_LABELS[hitsType]})</small></th>`;
+  $("compareHead").innerHTML =
+    `<tr><th>敵</th>${stepThs}${hitsThs}<th></th></tr>`;
+
+  const keys = [...compareList].sort(
+    (a, b) => (ENEMY_ORDER.get(a) ?? 999) - (ENEMY_ORDER.get(b) ?? 999),
+  );
+
+  const tbody = $("compareRows");
+  tbody.innerHTML = "";
+  let currentArea = "";
+  const colCount = 2 + attacks.length + (maxHits > 1 ? maxHits : 1);
+  for (const key of keys) {
+    const enemy = dataset[key]!;
+    const area = `Ep${enemy.episode} ${enemy.location ?? "?"}`;
+    if (area !== currentArea) {
+      currentArea = area;
+      const groupTr = document.createElement("tr");
+      groupTr.className = "compare-group";
+      groupTr.innerHTML = `<td colspan="${colCount}">${area}</td>`;
+      tbody.appendChild(groupTr);
+    }
+
+    const reqs = attacks.map((a, i) =>
+      requiredHitPercent(player, weapon, enemy, a.type, (i + 1) as 1 | 2 | 3, ctx),
+    );
+    const reqCells = reqs
+      .map((req) => {
+        if (!Number.isFinite(req) || req > maxHitCap) {
+          return `<td class="num req-imp" title="この武器の Hit% 上限では命中100%にできない">不可</td>`;
+        }
+        const ok = currentHit >= req;
+        return `<td class="num ${ok ? "req-ok" : "req-ng"}" title="${ok ? "現在の Hit% で達成済み" : `Hit% を ${req} 以上にすると命中100%`}">${req}</td>`;
+      })
+      .join("");
+
+    const minDmg = damageRange(player, weapon, enemy, hitsType, ctx).min;
+    const hitReq = reqs[hitsStep - 1]!;
+    const accOk = Number.isFinite(hitReq) && hitReq <= maxHitCap && currentHit >= hitReq;
+    let hitsCells: string;
+    if (maxHits > 1) {
+      hitsCells = Array.from({ length: maxHits }, (_, i) => {
+        const n = i + 1;
+        const dmgOk = minDmg > 0 && minDmg * n >= enemy.hp;
+        if (!dmgOk) return `<td class="num hit-no" title="最小ロールではダメージ不足">×</td>`;
+        if (!accOk) return `<td class="num hit-part" title="ダメージは足りるが命中100%でない (Hit%不足)">△</td>`;
+        return `<td class="num hit-ok" title="確定撃破 (min roll × ${n}ヒット ≥ HP・命中100%)">✓</td>`;
+      }).join("");
+    } else {
+      const n = minHitsToKill(player, weapon, enemy, hitsType, ctx);
+      hitsCells = `<td class="num">${n != null ? `${n}発` : "–"}</td>`;
+    }
+
+    const tr = document.createElement("tr");
+    tr.className = "compare-row" + (key === select("enPreset").value ? " row-active" : "");
+    tr.innerHTML = `
+      <td class="cell-indent">${key} ${typeBadge(enemy.enemyType)}</td>
+      ${reqCells}
+      ${hitsCells}
+      <td><button type="button" class="cmp-remove" data-key="${key}" title="リストから外す">×</button></td>
+    `;
+    tr.addEventListener("click", () => {
+      select("enPreset").value = key;
+      applyEnemyPreset();
+      render();
+    });
+    tr.querySelector(".cmp-remove")!.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      compareList = compareList.filter((k) => k !== key);
       render();
     });
     tbody.appendChild(tr);
@@ -867,6 +1107,7 @@ function render(): void {
     $("comboFramesOut").textContent =
       fr.frames != null ? `所要フレーム: ${fr.frames}F` : "所要フレーム: データなし";
 
+    renderClassCompare(inputData);
     renderCompare(inputData);
     syncUrl();
   } catch (e) {

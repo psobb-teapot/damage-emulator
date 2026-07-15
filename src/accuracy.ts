@@ -59,6 +59,38 @@ export function distancePenaltyApplies(player: PlayerStats, context: CombatConte
 }
 
 /**
+ * 命中率が 100% になるために必要な最小 Hit% を逆算する。
+ *
+ * 命中式 (ATA合計 × タイプ修正 × コンボ段修正 − EVPeff × 0.2 − 距離ペナ = 100) を
+ * Hit% について解いたもの。0 = Hit% 不要で確定。
+ * 武器の maxHitPercent を超えるかは呼び出し側で判定する。
+ * TJS など必中特殊は 0 を返す。
+ */
+export function requiredHitPercent(
+  player: PlayerStats,
+  weapon: Weapon,
+  enemy: Enemy,
+  attackType: AttackType,
+  comboStep: 1 | 2 | 3,
+  context: CombatContext = {},
+): number {
+  let typeMod = ATTACK_ACCURACY_MODIFIER[attackType];
+  if (attackType === "special") {
+    const special = resolveSpecial(weapon.special);
+    if (special?.fixedAccuracy != null) return special.fixedAccuracy >= 100 ? 0 : Infinity;
+    if (weapon.specialUsesHeavyAccuracy) typeMod = ATTACK_ACCURACY_MODIFIER.hard;
+  }
+  const comboMod = COMBO_ATA_MODIFIER[comboStep - 1] ?? 1.0;
+  let penalty = effectiveEvp(enemy, context) * EVP_FACTOR;
+  if (distancePenaltyApplies(player, context)) {
+    penalty += (context.distance ?? 0) * DISTANCE_PENALTY_FACTOR;
+  }
+  const neededAta = (100 + penalty) / (typeMod * comboMod);
+  const ataWithoutHit = totalAta(player, { ...weapon, hitPercent: 0 });
+  return Math.max(0, Math.ceil(neededAta - ataWithoutHit));
+}
+
+/**
  * 命中率のレンジを返す。
  * atPointBlank = 密着時 (距離0)、atMaxRange = 武器の最大射程 (horizontalDistance) 時。
  * ペナルティ対象外 (RA / Smartlink) では両者は同値。

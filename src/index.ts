@@ -1,8 +1,8 @@
 export * from "./types.js";
 export * from "./constants.js";
 export { atpRange, effectiveAtp, effectiveDfp, effectiveEvp, totalAta, equipmentAtp } from "./stats.js";
-export { damageRange, rawDamage, attackDamageModifier, criticalDamage } from "./damage.js";
-export { hitChance, hitChanceRange, distancePenaltyApplies } from "./accuracy.js";
+export { damageRange, rawDamage, attackDamageModifier, criticalDamage, minHitsToKill } from "./damage.js";
+export { hitChance, hitChanceRange, distancePenaltyApplies, requiredHitPercent } from "./accuracy.js";
 export { evaluateSpecial, hpCutFraction } from "./special.js";
 export { simulateCombo } from "./combo.js";
 export {

@@ -34,6 +34,9 @@
           <select id="cls" class="card-select" aria-label="クラス"></select>
           <div class="card-summary" id="charSummary"></div>
           <div class="card-summary chips" id="equipChips" title="装備中の防具・ユニット"></div>
+          <div class="compare-actions">
+            <button type="button" id="clsCompareBtn" title="現在の武器・装備・敵で全12クラスの最適コンボを比較">全クラスで比較</button>
+          </div>
           <div class="quick-row quick-row-single">
             <label class="quick-field">
               <span>シフタ Lv <output id="shiftaOut">0</output> <small>(自分の ATP)</small></span>
@@ -334,23 +337,42 @@
       </div>
     </aside>
 
-    <!-- 複数の敵との比較 (psostats 相当) -->
-    <section class="panel compare-panel" id="comparePanel" hidden>
+    <!-- 全クラスで最適コンボを比較 -->
+    <section class="panel compare-panel" id="classComparePanel" hidden>
       <div class="compare-head">
-        <span class="card-title">複数の敵で比較 <small>(<span id="compareCount">0</span>体 · 行クリックで詳細表示)</small></span>
+        <span class="card-title">全クラスで最適コンボを比較
+          <small>(Lv200 ステータス + 現在の装備・敵 / 装備可否は未判定 / 行クリックで反映)</small></span>
+        <button type="button" class="panel-close" id="clsCompareClose" title="閉じる">×</button>
       </div>
       <div class="compare-scroll">
         <table class="hit-table compare-table">
           <thead>
             <tr>
-              <th data-sort="name" class="sortable">敵</th>
-              <th data-sort="hp" class="sortable">HP</th>
-              <th data-sort="avg" class="sortable">平均合計 <small>(全弾命中)</small></th>
-              <th>%HP</th>
-              <th data-sort="kill" class="sortable">キル確率</th>
-              <th data-sort="acc" class="sortable">総合命中率</th>
-              <th></th>
+              <th>クラス</th>
+              <th>最適コンボ</th>
+              <th>確定ダメージ <small>(最小ロール全弾)</small></th>
+              <th>キル確率</th>
+              <th>総合命中率</th>
+              <th>フレーム</th>
             </tr>
+          </thead>
+          <tbody id="classCompareRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 複数の敵との比較 (psostats 相当) -->
+    <section class="panel compare-panel" id="comparePanel" hidden>
+      <div class="compare-head">
+        <span class="card-title">複数の敵で比較 <small>(<span id="compareCount">0</span>体 · 行クリックで詳細表示)</small></span>
+        <span class="mode-toggle">
+          <button type="button" id="cmpModeResult" class="mode-active">結果</button>
+          <button type="button" id="cmpModeReverse" title="命中100%に必要なHit%と確定撃破ラインを逆算">確定ライン (逆算)</button>
+        </span>
+      </div>
+      <div class="compare-scroll">
+        <table class="hit-table compare-table">
+          <thead id="compareHead">
           </thead>
           <tbody id="compareRows"></tbody>
         </table>
