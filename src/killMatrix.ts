@@ -122,15 +122,16 @@ export function guaranteedKillCombo(
         if (totalMinDamage > bestMinDamage) bestMinDamage = totalMinDamage;
         if (totalMinDamage < enemy.hp) continue;
 
-        // 全段命中100%に必要な Hit% (厳密値)。どこかの段が Infinity なら不可
-        const requiredHit = attacks.reduce(
-          (max, type, i) =>
-            Math.max(
-              max,
-              requiredHitPercent(player, weapon, enemy, type, (i + 1) as 1 | 2 | 3, context),
-            ),
-          0,
+        // 全段命中100%に必要な Hit% (厳密値)。どこかの段が Infinity なら不可。
+        // SNグリッチ有効時は1段目を2段目の命中率で置換できるため、
+        // 1段目の要求値は min(1段目, 2段目) になる
+        const reqs = attacks.map((type, i) =>
+          requiredHitPercent(player, weapon, enemy, type, (i + 1) as 1 | 2 | 3, context),
         );
+        if (context.snGlitch && reqs.length >= 2) {
+          reqs[0] = Math.min(reqs[0]!, reqs[1]!);
+        }
+        const requiredHit = reqs.reduce((max, r) => Math.max(max, r), 0);
 
         const { frames } = comboFrames(weapon, className, attacks);
         const result: GuaranteedComboResult = {

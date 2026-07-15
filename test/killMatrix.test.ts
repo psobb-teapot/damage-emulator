@@ -85,6 +85,24 @@ describe("guaranteedKillCombo", () => {
     }
   });
 
+  it("SNグリッチ有効時は1段目の要求 Hit% が2段目で置換される", () => {
+    const weapon = { ...WEAPONS["Excalibur"]!, hitPercent: 0 };
+    const enemy = ENEMIES["Bartle"]!;
+    const plain = guaranteedKillCombo(player, weapon, enemy, "HUcast");
+    const glitched = guaranteedKillCombo(player, weapon, enemy, "HUcast", { snGlitch: true });
+    // グリッチで1段目の縛りが消える分、要求 Hit% は同じか下がる
+    expect(glitched.withMoreHit!.requiredHitPercent).toBeLessThanOrEqual(
+      plain.withMoreHit!.requiredHitPercent,
+    );
+    // その Hit% を付ければグリッチ込みで実際に確定になる
+    const withHit = {
+      ...weapon,
+      hitPercent: Math.ceil(glitched.withMoreHit!.requiredHitPercent),
+    };
+    const confirm = guaranteedKillCombo(player, withHit, enemy, "HUcast", { snGlitch: true });
+    expect(confirm.guaranteed).not.toBeNull();
+  });
+
   it("コンボ不可武器は 1 段のみ", () => {
     const weapon = WEAPONS["Dark Flow"]!;
     expect(weapon.singleAttackOnly).toBe(true);
