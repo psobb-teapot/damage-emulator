@@ -626,10 +626,17 @@ for (const btn of document.querySelectorAll<HTMLButtonElement>(".cond-toggle[dat
     el.dispatchEvent(new Event("change", { bubbles: true }));
   });
 }
-for (const btn of document.querySelectorAll<HTMLButtonElement>(".cond-zalure")) {
-  btn.addEventListener("click", () => {
+// ザルアは 0〜30 の任意レベルを選べるセレクト (上部スライダーと双方向同期)
+for (const sel of document.querySelectorAll<HTMLSelectElement>(".cond-zalure-select")) {
+  for (let lv = 0; lv <= 30; lv++) {
+    const opt = document.createElement("option");
+    opt.value = String(lv);
+    opt.textContent = String(lv);
+    sel.appendChild(opt);
+  }
+  sel.addEventListener("change", () => {
     const z = input("zalure");
-    z.value = Number(z.value) > 0 ? "0" : "30";
+    z.value = sel.value;
     z.dispatchEvent(new Event("input", { bubbles: true }));
   });
 }
@@ -640,9 +647,9 @@ function updateCondBars(): void {
     btn.classList.toggle("cond-active", input(btn.dataset.cond!).checked);
   }
   const z = num("zalure");
-  for (const btn of document.querySelectorAll<HTMLButtonElement>(".cond-zalure")) {
-    btn.classList.toggle("cond-active", z > 0);
-    btn.querySelector(".z-val")!.textContent = String(z);
+  for (const field of document.querySelectorAll<HTMLElement>(".cond-zalure-field")) {
+    field.classList.toggle("cond-active", z > 0);
+    field.querySelector<HTMLSelectElement>(".cond-zalure-select")!.value = String(z);
   }
 }
 

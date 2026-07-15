@@ -620,6 +620,39 @@ a {
   box-shadow: 0 0 10px rgba(255, 184, 77, 0.4);
 }
 
+.cond-zalure-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-display);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--muted);
+  border: 1px solid var(--panel-edge);
+  background: rgba(11, 20, 36, 0.6);
+  padding: 2px 8px;
+}
+
+.cond-zalure-field.cond-active {
+  color: var(--amber);
+  border-color: var(--amber);
+  box-shadow: 0 0 10px rgba(255, 184, 77, 0.3);
+}
+
+.cond-zalure-select {
+  font: 600 12px var(--font-display);
+  color: var(--ink);
+  background: rgba(11, 20, 36, 0.85);
+  border: 1px solid var(--panel-edge);
+  padding: 2px 4px;
+  width: 52px;
+}
+
+.cond-zalure-select:focus-visible {
+  outline: 2px solid var(--photon);
+  outline-offset: 1px;
+}
+
 /* 条件変更時のフラッシュ (再計算の知覚) */
 
 @keyframes cond-flash {
