@@ -1,8 +1,8 @@
 # pso-damage-emulator
 
-**公開版: https://psobb-teapot.github.io/rappyruns/**
-(rappyruns リポジトリの `damage-emulator/` サブディレクトリとして管理。
-main への push で GitHub Actions (`.github/workflows/emulator-pages.yml`) が自動デプロイ)
+**公開版: Rappy Runs の `/calc`** (rappyruns リポジトリの `damage-emulator/`
+サブディレクトリとして管理。Docker ビルドの engine ステージが Web 電卓を
+`static/calc/` に生成し、main への push で Railway に自動デプロイされる)
 
 PSOBB (Phantasy Star Online: Blue Burst) のコンボ・ダメージ計算エンジン。
 [psostats.com/combo-calculator](https://psostats.com/combo-calculator) 相当の計算を
