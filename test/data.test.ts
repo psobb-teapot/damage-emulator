@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   attackDamageModifier,
   ENEMIES,
+  ENEMIES_ONE_PERSON,
   FRAMES,
   BARRIERS,
   resolveSpecial,
@@ -96,6 +97,55 @@ describe("生成データ: 敵", () => {
     for (const e of Object.values(ENEMIES)) {
       expect([1, 2, 4], e.name).toContain(e.episode);
       expect(e.location, e.name).toBeTruthy();
+    }
+  });
+});
+
+describe("生成データ: 一人用モードの敵", () => {
+  it("マルチと同じ135種・同じキー", () => {
+    expect(Object.keys(ENEMIES_ONE_PERSON).length).toBe(135);
+    expect(Object.keys(ENEMIES_ONE_PERSON).sort()).toEqual(Object.keys(ENEMIES).sort());
+  });
+
+  it("Bartle の一人用ステータス (psostats/opm 実測)", () => {
+    const e = ENEMIES_ONE_PERSON["Bartle"]!;
+    expect(e.hp).toBe(1556);
+    expect(e.dfp).toBe(451);
+    expect(e.evp).toBe(424);
+    expect(e.edk).toBe(70);
+    expect(e.esp).toBe(12);
+  });
+
+  it("Delsaber (Ruins) の一人用ステータス", () => {
+    const e = ENEMIES_ONE_PERSON["Delsaber (Ruins)"]!;
+    expect(e.hp).toBe(2300);
+    expect(e.dfp).toBe(647);
+    expect(e.evp).toBe(600);
+  });
+
+  it("Dark Falz (Form 3) は HP 21000 → 10000", () => {
+    expect(ENEMIES["Dark Falz (Form 3)"]!.hp).toBe(21000);
+    expect(ENEMIES_ONE_PERSON["Dark Falz (Form 3)"]!.hp).toBe(10000);
+  });
+
+  it("一人用の HP はマルチ以下 (例外: Mericarol/Morfos は逆に高い)", () => {
+    const higher: string[] = [];
+    for (const [key, solo] of Object.entries(ENEMIES_ONE_PERSON)) {
+      if (solo.hp > ENEMIES[key]!.hp) higher.push(key);
+    }
+    // psostats/opm のデータ上、一人用の方が HP が高いのはこの2体のみ
+    expect(higher.sort()).toEqual(["Mericarol", "Morfos"]);
+    expect(ENEMIES_ONE_PERSON["Mericarol"]!.hp).toBe(3825);
+    expect(ENEMIES_ONE_PERSON["Morfos"]!.hp).toBe(4660);
+  });
+
+  it("種族・エリア・フラグはモード間で同一", () => {
+    for (const [key, solo] of Object.entries(ENEMIES_ONE_PERSON)) {
+      const multi = ENEMIES[key]!;
+      expect(solo.enemyType, key).toBe(multi.enemyType);
+      expect(solo.location, key).toBe(multi.location);
+      expect(solo.isBoss ?? false, key).toBe(multi.isBoss ?? false);
+      expect(solo.ccaMiniboss ?? false, key).toBe(multi.ccaMiniboss ?? false);
     }
   });
 });

@@ -15,7 +15,8 @@ TypeScript モジュールとして提供します。
 - クリティカル (LCK 依存) を織り込んだ期待ダメージ
 - 命中・クリティカル・特殊発動を確率分布として畳み込んだ **キル確率** と **期待残りHP**
 - **全123武器** (ATP範囲・ATA・最大グラインド・Hit%/属性上限・特殊・段ごとのヒット数・射程)
-- **全135敵** (Ultimate 全エリア: Ep1/Ep2/Ep4、種族・全耐性・ボスフラグ付き)
+- **全135敵** (Ultimate 全エリア: Ep1/Ep2/Ep4、種族・全耐性・ボスフラグ付き)。
+  **マルチプレイ / 一人用モード**の両ステータスを収録 (`ENEMIES` / `ENEMIES_ONE_PERSON`)
 - **フレーム8種 / バリア10種** (ATP/ATA 補正) + ユニット等の追加値入力
 - **セット効果** (Thirteen+Diska of Braveman、Crimson Coat+Red系、Samurai Armor+Orotiagito、
   Sweetheart、Safety Heart+Rambling May、POSS ユニット、Commander Blade)
@@ -135,10 +136,12 @@ psostats と意図的に異なる点:
 ## データについて
 
 武器・敵・防具のデータは [psostats.com/combo-calculator](https://psostats.com/combo-calculator)
-に埋め込まれたデータのスナップショット (`data/raw/*.json`) から生成しています
+(一人用モードは [/opm](https://psostats.com/combo-calculator/opm)) に埋め込まれた
+データのスナップショット (`data/raw/*.json`) から生成しています
 (元データは Ephinea PSOBB / wiki.pioneer2.net 由来)。
 
-- 敵データは **Ultimate 難易度・マルチプレイ時**の値。他難易度は `Enemy` 型で自由に定義可能。
+- 敵データは **Ultimate 難易度**で、マルチプレイ時と一人用モードの両方を収録。
+  他難易度は `Enemy` 型で自由に定義可能。
 - 再生成: `node tools/generate-data.mjs` → `src/data/*.gen.ts`
 - 武器固有特殊 (Dark Flow / TJS / Orotiagito / Raikiri / Lavis 系 / Mille Marteaux 等) の
   ダメージ倍率は psostats 実装から係数 0.9 の折り込みを外した値

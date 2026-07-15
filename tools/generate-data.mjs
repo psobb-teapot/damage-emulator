@@ -13,6 +13,7 @@ const raw = (name) => JSON.parse(readFileSync(join(root, "data/raw", name), "utf
 
 const weapons = raw("weapons.json");
 const enemies = raw("enemies.json");
+const enemiesOnePerson = raw("enemies-opm.json");
 const frames = raw("frames.json");
 const barriers = raw("barriers.json");
 const animation = raw("animation-frames.json");
@@ -114,36 +115,45 @@ const EPISODE_BY_LOCATION = {
 const BOSS_PATTERN =
   /^(Sil Dragon|Dal Ra Lie|Vol Opt ver\. 2|Dark Falz|Barba Ray|Gol Dragon|Gal Gryphon|Olga Flow|Saint-Milion|Shambertin|Kondrieu)/;
 
-const enemyEntries = [];
-for (const [key, e] of Object.entries(enemies)) {
-  const episode = EPISODE_BY_LOCATION[e.location];
-  if (!episode) throw new Error(`未知の location: ${e.location} (${key})`);
-  const fields = [
-    `name: ${JSON.stringify(e.name)}`,
-    `hp: ${e.hp}`,
-    `dfp: ${e.dfp}`,
-    `evp: ${e.evp}`,
-    `edk: ${e.edk}`,
-    `esp: ${e.esp}`,
-    `difficulty: "ultimate"`,
-    `episode: ${episode}`,
-    `location: ${JSON.stringify(e.location)}`,
-    `enemyType: ${JSON.stringify(e.type)}`,
-  ];
-  if (e.type === "Machine") fields.push(`isMachine: true`);
-  if (BOSS_PATTERN.test(e.name)) fields.push(`isBoss: true`);
-  if (e.ccaMiniboss) fields.push(`ccaMiniboss: true`);
-  enemyEntries.push(`  ${JSON.stringify(key)}: { ${fields.join(", ")} },`);
+function enemyEntriesOf(dataset) {
+  const entries = [];
+  for (const [key, e] of Object.entries(dataset)) {
+    const episode = EPISODE_BY_LOCATION[e.location];
+    if (!episode) throw new Error(`未知の location: ${e.location} (${key})`);
+    const fields = [
+      `name: ${JSON.stringify(e.name)}`,
+      `hp: ${e.hp}`,
+      `dfp: ${e.dfp}`,
+      `evp: ${e.evp}`,
+      `edk: ${e.edk}`,
+      `esp: ${e.esp}`,
+      `difficulty: "ultimate"`,
+      `episode: ${episode}`,
+      `location: ${JSON.stringify(e.location)}`,
+      `enemyType: ${JSON.stringify(e.type)}`,
+    ];
+    if (e.type === "Machine") fields.push(`isMachine: true`);
+    if (BOSS_PATTERN.test(e.name)) fields.push(`isBoss: true`);
+    if (e.ccaMiniboss) fields.push(`ccaMiniboss: true`);
+    entries.push(`  ${JSON.stringify(key)}: { ${fields.join(", ")} },`);
+  }
+  return entries;
 }
 
 writeFileSync(
   join(root, "src/data/enemies.gen.ts"),
   `// このファイルは tools/generate-data.mjs により自動生成される。手で編集しないこと。
-// データ出典: psostats.com/combo-calculator (Ultimate 難易度・マルチプレイ時の値)
+// データ出典: psostats.com/combo-calculator (Ultimate 難易度)
 import type { Enemy } from "../types.js";
 
+/** マルチプレイ時の敵ステータス */
 export const ALL_ENEMIES: Record<string, Enemy> = {
-${enemyEntries.join("\n")}
+${enemyEntriesOf(enemies).join("\n")}
+};
+
+/** 一人用モード (One-person mode) の敵ステータス (psostats.com/combo-calculator/opm) */
+export const ALL_ENEMIES_ONE_PERSON: Record<string, Enemy> = {
+${enemyEntriesOf(enemiesOnePerson).join("\n")}
 };
 `,
 );
@@ -203,5 +213,5 @@ export const POSS_WEAPONS: ReadonlySet<string> = new Set(${JSON.stringify(animat
 );
 
 console.log(
-  `generated: weapons=${weaponEntries.length} enemies=${enemyEntries.length} frames=${Object.keys(frames).length} barriers=${Object.keys(barriers).length} animations=${Object.keys(animation.frameData).length}`,
+  `generated: weapons=${weaponEntries.length} enemies=${Object.keys(enemies).length} (+opm ${Object.keys(enemiesOnePerson).length}) frames=${Object.keys(frames).length} barriers=${Object.keys(barriers).length} animations=${Object.keys(animation.frameData).length}`,
 );

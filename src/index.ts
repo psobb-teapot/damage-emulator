@@ -24,6 +24,6 @@ export {
 } from "./data/animation.gen.js";
 export { SPECIALS, resolveSpecial } from "./data/specials.js";
 export { WEAPONS, makeWeapon } from "./data/weapons.js";
-export { ENEMIES } from "./data/enemies.js";
+export { ENEMIES, ENEMIES_ONE_PERSON } from "./data/enemies.js";
 export { FRAMES, BARRIERS, type ArmorStats } from "./data/armor.gen.js";
 export { CLASSES, playerFromClass, type ClassStats } from "./data/classes.js";

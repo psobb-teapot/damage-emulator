@@ -2,7 +2,7 @@ import { findBestCombo } from "../autoCombo.js";
 import { simulateCombo } from "../combo.js";
 import { BARRIERS, FRAMES } from "../data/armor.gen.js";
 import { CLASSES } from "../data/classes.js";
-import { ENEMIES } from "../data/enemies.js";
+import { ENEMIES, ENEMIES_ONE_PERSON } from "../data/enemies.js";
 import { SPECIALS } from "../data/specials.js";
 import { WEAPONS } from "../data/weapons.js";
 import { equipmentBonus, type PossUnit } from "../equipment.js";
@@ -232,8 +232,13 @@ function applyWeaponPreset(): void {
   }
 }
 
+/** 現在のモード (マルチ/一人用) の敵データセット */
+function activeEnemies(): Record<string, import("../types.js").Enemy> {
+  return input("enSolo").checked ? ENEMIES_ONE_PERSON : ENEMIES;
+}
+
 function applyEnemyPreset(): void {
-  const preset = ENEMIES[select("enPreset").value];
+  const preset = activeEnemies()[select("enPreset").value];
   if (!preset) return;
   input("enHp").value = String(preset.hp);
   input("enDfp").value = String(preset.dfp);
@@ -379,7 +384,7 @@ function readInput(): ComboInput {
       esp: num("enEsp"),
       isMachine: input("enMachine").checked,
       isBoss: input("enBoss").checked,
-      ccaMiniboss: ENEMIES[select("enPreset").value]?.ccaMiniboss,
+      ccaMiniboss: activeEnemies()[select("enPreset").value]?.ccaMiniboss,
       difficulty: select("enDifficulty").value as Difficulty,
     },
     attacks: readCombo(),
@@ -427,7 +432,7 @@ function updateSummaries(inputData: ComboInput): void {
     .join(" · ");
 
   const e = inputData.enemy;
-  const preset = ENEMIES[select("enPreset").value];
+  const preset = activeEnemies()[select("enPreset").value];
   $("enSummary").innerHTML = [
     `HP <b>${fmt(e.hp)}</b>`,
     `DFP <b>${fmt(e.dfp)}</b>`,
@@ -436,6 +441,7 @@ function updateSummaries(inputData: ComboInput): void {
     preset?.enemyType ? `<span class="badge badge-muted">${preset.enemyType}</span>` : "",
     e.isBoss ? `<span class="badge badge-warn">ボス</span>` : "",
     preset?.ccaMiniboss ? `<span class="badge badge-warn">属性%無効</span>` : "",
+    input("enSolo").checked ? `<span class="badge">一人用</span>` : "",
   ]
     .filter(Boolean)
     .join(" · ");
@@ -482,7 +488,7 @@ const STATE_FIELDS = [
   "cls", "useMax", "lck", "baseAtp", "baseAta",
   "wpPreset", "wpKind", "wpAtpMin", "wpAtpMax", "wpAta", "wpGrind", "wpAttr", "wpHit",
   "wpHits", "wpSpecial", "wpEff", "wpHeavyAcc", "wpHeavyDmg",
-  "enPreset", "enHp", "enDfp", "enEvp", "enEdk", "enEsp", "enDifficulty", "enMachine", "enBoss",
+  "enPreset", "enSolo", "enHp", "enDfp", "enEvp", "enEdk", "enEsp", "enDifficulty", "enMachine", "enBoss",
   "shifta", "zalure", "ctxDistance", "ctxFrozen", "ctxParalyzed", "ctxCrits",
   "ctxV501", "ctxV502", "ctxSmartlink", "ctxSnGlitch",
   "frame", "barrier", "possUnit", "commanderBlade", "armorAtp", "armorAta",
@@ -693,6 +699,10 @@ select("wpPreset").addEventListener("change", () => {
 select("enPreset").addEventListener("change", () => {
   applyEnemyPreset();
   render();
+});
+// モード切替時はプリセットの値を選び直す (カスタムは値を維持)
+input("enSolo").addEventListener("change", () => {
+  if (select("enPreset").value !== "custom") applyEnemyPreset();
 });
 
 // 武器の「個体差」を超える編集をしたらプリセットを「カスタム」へ
