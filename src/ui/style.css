@@ -1274,6 +1274,10 @@ fieldset.panel {
   background: rgba(82, 216, 239, 0.1);
 }
 
+.compare-row.row-unequippable td {
+  opacity: 0.4;
+}
+
 .pct-cell {
   position: relative;
   min-width: 110px;

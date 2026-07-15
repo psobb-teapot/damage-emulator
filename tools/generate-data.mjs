@@ -17,6 +17,7 @@ const enemiesOnePerson = raw("enemies-opm.json");
 const frames = raw("frames.json");
 const barriers = raw("barriers.json");
 const animation = raw("animation-frames.json");
+const weaponClasses = raw("weapon-classes.json");
 
 /* ---------- 武器 ---------- */
 
@@ -88,6 +89,12 @@ for (const [key, w] of Object.entries(weapons)) {
     fields.push(`specialUsesHeavyAccuracy: true`);
   }
   if (w.comboPreset?.attack2 === "NONE") fields.push(`singleAttackOnly: true`);
+  // 装備可能クラス (wiki.pioneer2.net の12ビットフラグ由来)
+  const bits = weaponClasses.bits[key];
+  if (bits) {
+    const usable = weaponClasses.classOrder.filter((_, i) => bits[i] === "1");
+    fields.push(`usableClasses: ${JSON.stringify(usable)}`);
+  }
   weaponEntries.push(`  ${JSON.stringify(key)}: { ${fields.join(", ")} },`);
 }
 

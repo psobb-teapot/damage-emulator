@@ -349,6 +349,7 @@ function readWeapon(): Weapon {
     animation: kindMatches ? preset.animation : KIND_TO_ANIMATION[kind],
     horizontalDistance: kindMatches ? preset.horizontalDistance : 0,
     singleAttackOnly: kindMatches ? preset.singleAttackOnly : undefined,
+    usableClasses: kindMatches ? preset.usableClasses : undefined,
     specialHits: kindMatches ? preset.specialHits : undefined,
     hitsPerAttack: input("wpHits").value
       ? num("wpHits", 1)
@@ -455,6 +456,9 @@ function updateSummaries(inputData: ComboInput): void {
       ? `<span class="badge badge-special">${specialName}</span>`
       : `<span class="badge badge-muted">特殊なし</span>`,
     w.singleAttackOnly ? `<span class="badge badge-warn">コンボ不可</span>` : "",
+    w.usableClasses && !w.usableClasses.includes(select("cls").value)
+      ? `<span class="badge badge-special">${select("cls").value} は装備不可</span>`
+      : "",
   ]
     .filter(Boolean)
     .join(" · ");
@@ -552,6 +556,7 @@ function renderClassCompare(inputData: ComboInput): void {
   $("clsTargetNote").textContent = `対象の敵: ${inputData.enemy.name}${
     input("enSolo").checked ? " (一人用)" : ""
   } — `;
+  const usable = inputData.weapon.usableClasses;
   const rows = Object.keys(CLASSES)
     .map((clsName) => {
       const armor = armorTotals(inputData.weapon);
@@ -574,11 +579,14 @@ function renderClassCompare(inputData: ComboInput): void {
         attacks: best.attacks.map((type) => ({ type })),
         context: inputData.context,
       });
-      return { clsName, best, kill: sim.killProbability * 100 };
+      const equippable = !usable || usable.includes(clsName);
+      return { clsName, best, kill: sim.killProbability * 100, equippable };
     })
     .filter((r): r is NonNullable<typeof r> => r !== null);
 
+  // 装備可能クラスを上位に、その中でキル確率→ダメージ→フレームの順
   rows.sort((a, b) => {
+    if (a.equippable !== b.equippable) return a.equippable ? -1 : 1;
     if (b.kill !== a.kill) return b.kill - a.kill;
     if (b.best.totalDamage !== a.best.totalDamage) return b.best.totalDamage - a.best.totalDamage;
     return (a.best.frames ?? 9999) - (b.best.frames ?? 9999);
@@ -589,11 +597,14 @@ function renderClassCompare(inputData: ComboInput): void {
   rows.forEach((row, i) => {
     const tr = document.createElement("tr");
     tr.className =
-      "compare-row" + (row.clsName === select("cls").value ? " row-active" : "");
+      "compare-row" +
+      (row.clsName === select("cls").value ? " row-active" : "") +
+      (row.equippable ? "" : " row-unequippable");
     const comboLabel = row.best.attacks.map((t) => ATTACK_LABELS[t]).join("→");
     const killClass = row.kill >= 99.95 ? "kill-hi" : row.kill <= 0.05 ? "kill-lo" : "";
+    const star = i === 0 && row.equippable ? "★ " : "";
     tr.innerHTML = `
-      <td>${i === 0 ? "★ " : ""}${row.clsName}</td>
+      <td>${star}${row.clsName}${row.equippable ? "" : ` <span class="badge badge-special">装備不可</span>`}</td>
       <td class="num">${comboLabel}</td>
       <td class="num">${fmt(row.best.totalDamage)}</td>
       <td class="num ${killClass}">${row.kill.toFixed(1)}%</td>

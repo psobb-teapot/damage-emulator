@@ -63,6 +63,41 @@ describe("生成データ: 武器", () => {
       expect(w.atpMin, w.name).toBeLessThanOrEqual(w.atpMax);
     }
   });
+
+  it("全武器に装備可能クラスがある (wiki の12ビットフラグ由来)", () => {
+    for (const w of Object.values(WEAPONS)) {
+      expect(w.usableClasses, w.name).toBeDefined();
+      expect(w.usableClasses!.length, w.name).toBeGreaterThan(0);
+    }
+  });
+
+  it("装備可能クラスのスポットチェック", () => {
+    // Dark Flow / Vjaya / TJS はハンター専用
+    expect(WEAPONS["Dark Flow"]!.usableClasses).toEqual([
+      "HUmar", "HUnewearl", "HUcast", "HUcaseal",
+    ]);
+    expect(WEAPONS["Tsumikiri J-Sword"]!.usableClasses).toEqual([
+      "HUmar", "HUnewearl", "HUcast", "HUcaseal",
+    ]);
+    // Frozen Shooter はレンジャー専用
+    expect(WEAPONS["Frozen Shooter"]!.usableClasses).toEqual([
+      "RAmar", "RAmarl", "RAcast", "RAcaseal",
+    ]);
+    // Guardianna はフォース専用
+    expect(WEAPONS["Guardianna"]!.usableClasses).toEqual([
+      "FOmar", "FOmarl", "FOnewm", "FOnewearl",
+    ]);
+    // Master Raven は男性専用 / Rambling May は女性専用
+    expect(WEAPONS["Master Raven"]!.usableClasses).toEqual([
+      "HUmar", "HUcast", "RAmar", "RAcast", "FOmar", "FOnewm",
+    ]);
+    expect(WEAPONS["Rambling May"]!.usableClasses).toEqual([
+      "HUnewearl", "HUcaseal", "RAmarl", "RAcaseal", "FOmarl", "FOnewearl",
+    ]);
+    // Excalibur は FOnewearl のみ不可
+    expect(WEAPONS["Excalibur"]!.usableClasses).toHaveLength(11);
+    expect(WEAPONS["Excalibur"]!.usableClasses).not.toContain("FOnewearl");
+  });
 });
 
 describe("生成データ: 敵", () => {

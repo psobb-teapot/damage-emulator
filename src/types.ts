@@ -111,6 +111,8 @@ export interface Weapon {
   horizontalDistance?: number;
   /** コンボ不可の単発武器 (Master Raven, Dark Flow, L&K38 Combat 等) */
   singleAttackOnly?: boolean;
+  /** 装備可能クラス (未指定なら全クラス扱い) */
+  usableClasses?: string[];
 }
 
 export interface PlayerStats {
