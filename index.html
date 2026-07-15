@@ -33,6 +33,7 @@
           <div class="card-title">キャラクター</div>
           <select id="cls" class="card-select" aria-label="クラス"></select>
           <div class="card-summary" id="charSummary"></div>
+          <div class="card-summary chips" id="equipChips" title="装備中の防具・ユニット"></div>
           <div class="quick-row quick-row-single">
             <label class="quick-field">
               <span>シフタ Lv <output id="shiftaOut">0</output> <small>(自分の ATP)</small></span>
@@ -40,7 +41,7 @@
             </label>
           </div>
           <details class="card-details">
-            <summary>詳細設定</summary>
+            <summary>ステータス・装備</summary>
             <div class="field-grid">
               <label class="field checkbox span2">
                 <input type="checkbox" id="useMax" checked />
@@ -58,7 +59,45 @@
                 <span>LCK</span>
                 <input type="number" id="lck" min="0" max="100" value="100" />
               </label>
+              <div class="subhead span2">装備 (防具・ユニット)</div>
+              <label class="field">
+                <span>フレーム</span>
+                <select id="frame"></select>
+              </label>
+              <label class="field">
+                <span>バリア</span>
+                <select id="barrier"></select>
+              </label>
+              <label class="field span2">
+                <span>ユニット <small>(POSS)</small></span>
+                <select id="possUnit"></select>
+              </label>
+              <label class="field checkbox span2">
+                <input type="checkbox" id="commanderBlade" />
+                <span>Commander Blade <small>(ATA+20)</small></span>
+              </label>
+              <label class="field checkbox span2">
+                <input type="checkbox" id="ctxV501" />
+                <span>V501 <small>(状態異常×1.5)</small></span>
+              </label>
+              <label class="field checkbox span2">
+                <input type="checkbox" id="ctxV502" />
+                <span>V502 <small>(即死×2)</small></span>
+              </label>
+              <label class="field checkbox span2">
+                <input type="checkbox" id="ctxSmartlink" />
+                <span>Smartlink <small>(距離ペナルティ無効)</small></span>
+              </label>
+              <label class="field">
+                <span>追加 ATP</span>
+                <input type="number" id="armorAtp" min="0" value="0" />
+              </label>
+              <label class="field">
+                <span>追加 ATA</span>
+                <input type="number" id="armorAta" min="0" value="0" />
+              </label>
             </div>
+            <p class="equip-note" id="setEffectNote" hidden></p>
           </details>
         </div>
 
@@ -223,52 +262,6 @@
         </div>
       </fieldset>
 
-      <!-- 3. 防具・ユニット -->
-      <details class="panel collapsible" id="equipDetails">
-        <summary>
-          <span class="collapsible-title">防具・ユニット</span>
-          <span class="chips" id="equipChips"></span>
-        </summary>
-        <div class="field-grid grid3">
-          <label class="field">
-            <span>フレーム</span>
-            <select id="frame"></select>
-          </label>
-          <label class="field">
-            <span>バリア</span>
-            <select id="barrier"></select>
-          </label>
-          <label class="field">
-            <span>ユニット <small>(POSS)</small></span>
-            <select id="possUnit"></select>
-          </label>
-          <label class="field checkbox">
-            <input type="checkbox" id="commanderBlade" />
-            <span>Commander Blade <small>(ATA+20)</small></span>
-          </label>
-          <label class="field checkbox">
-            <input type="checkbox" id="ctxV501" />
-            <span>V501 <small>(状態異常×1.5)</small></span>
-          </label>
-          <label class="field checkbox">
-            <input type="checkbox" id="ctxV502" />
-            <span>V502 <small>(即死×2)</small></span>
-          </label>
-          <label class="field checkbox">
-            <input type="checkbox" id="ctxSmartlink" />
-            <span>Smartlink <small>(距離ペナルティ無効)</small></span>
-          </label>
-          <label class="field">
-            <span>追加 ATP</span>
-            <input type="number" id="armorAtp" min="0" value="0" />
-          </label>
-          <label class="field">
-            <span>追加 ATA</span>
-            <input type="number" id="armorAta" min="0" value="0" />
-          </label>
-        </div>
-        <p class="equip-note" id="setEffectNote" hidden></p>
-      </details>
     </div>
 
     <!-- 結果 -->

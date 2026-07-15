@@ -463,7 +463,8 @@ function updateChips(inputData: ComboInput): void {
   if (c.smartlink) equip.push(chip("Smartlink"));
   if (num("armorAtp") > 0) equip.push(chip(`+${num("armorAtp")}ATP`));
   if (num("armorAta") > 0) equip.push(chip(`+${num("armorAta")}ATA`));
-  $("equipChips").innerHTML = equip.join("");
+  $("equipChips").innerHTML =
+    equip.length > 0 ? equip.join("") : `<span class="chip chip-muted">装備なし</span>`;
 
   // セット効果の表示
   const bonus = equipmentBonus({
@@ -767,6 +768,8 @@ if (!restored) {
   applyWeaponPreset();
   select("enPreset").value = "Bartle";
   applyEnemyPreset();
+  // 終盤の標準装備 Red Ring をデフォルトに
+  select("barrier").value = "Red Ring";
 }
 $("shiftaOut").textContent = input("shifta").value;
 $("zalureOut").textContent = input("zalure").value;
