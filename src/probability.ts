@@ -39,6 +39,39 @@ function singleHitDistribution(
  * を返す (戻り値は 0..1 の配列、[0] が 1 ヒット時)。
  * dmgMin ≤ 0 の場合はすべて 0。
  */
+/**
+ * 「n 本発射したとき敵を倒せる確率」(命中判定込み)。
+ * 各弾は独立に確率 accuracy (0..1) で命中し、命中弾のダメージ合計が
+ * HP 以上になる確率を二項分布との合成で求める。
+ * accuracy = 1 なら killProbabilityByHits と一致する。
+ */
+export function killProbabilityWithAccuracy(
+  dmgMin: number,
+  dmgMax: number,
+  hp: number,
+  maxHits: number,
+  accuracy: number,
+  critChance = 0,
+): number[] {
+  const acc = Math.max(0, Math.min(1, accuracy));
+  const pCond = killProbabilityByHits(dmgMin, dmgMax, hp, maxHits, critChance);
+  const binomialPmf = (n: number, k: number): number => {
+    let c = 1;
+    for (let i = 0; i < k; i++) c = (c * (n - i)) / (i + 1);
+    return c * Math.pow(acc, k) * Math.pow(1 - acc, n - k);
+  };
+  const result: number[] = [];
+  for (let n = 1; n <= maxHits; n++) {
+    // P(kill) = Σ_k C(n,k) acc^k (1-acc)^(n-k) × P(kill | k本命中)
+    let p = 0;
+    for (let k = 1; k <= n; k++) {
+      p += binomialPmf(n, k) * (pCond[k - 1] ?? 0);
+    }
+    result.push(Math.min(1, p));
+  }
+  return result;
+}
+
 export function killProbabilityByHits(
   dmgMin: number,
   dmgMax: number,
@@ -64,7 +97,7 @@ export function killProbabilityByHits(
       const p = probs[i]!;
       if (p === 0) continue;
       for (let j = 0; j < single.probs.length; j++) {
-        next[i + j] += p * single.probs[j]!;
+        next[i + j] = (next[i + j] ?? 0) + p * single.probs[j]!;
       }
     }
     // hp 以上を吸収

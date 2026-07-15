@@ -1,4 +1,4 @@
-import { requiredHitPercent } from "../accuracy.js";
+import { hitChance, requiredHitPercent } from "../accuracy.js";
 import { findBestCombo } from "../autoCombo.js";
 import { simulateCombo } from "../combo.js";
 import { damageRange, minHitsToKill } from "../damage.js";
@@ -9,7 +9,7 @@ import { SPECIALS } from "../data/specials.js";
 import { WEAPONS } from "../data/weapons.js";
 import { equipmentBonus, type PossUnit } from "../equipment.js";
 import { comboFrames } from "../frames.js";
-import { killProbabilityByHits } from "../probability.js";
+import { killProbabilityWithAccuracy } from "../probability.js";
 import { atpRange, effectiveDfp, totalAta } from "../stats.js";
 import { criticalChance, DEFAULT_HITS_PER_ATTACK } from "../constants.js";
 import type {
@@ -871,9 +871,9 @@ function renderLineView(inputData: ComboInput): void {
     maxHits > 1
       ? Array.from(
           { length: maxHits },
-          (_, i) => `<th title="最小ロール・クリなしで確定撃破できるか">${ATTACK_LABELS[hitsType]}×${i + 1}</th>`,
+          (_, i) => `<th title="n本発射時のキル確率 (想定Hit%の命中判定・ダメージ乱数込み)">${ATTACK_LABELS[hitsType]}×${i + 1}</th>`,
         ).join("")
-      : `<th title="最小ロール・クリなしで確定撃破に必要なヒット数">確殺ヒット数 <small>(${ATTACK_LABELS[hitsType]})</small></th>`;
+      : `<th title="しきい値を満たすのに必要な発数 (命中判定込み)">必要発数 <small>(${ATTACK_LABELS[hitsType]})</small></th>`;
   $("lineHead").innerHTML =
     `<tr><th>敵</th>${stepThs}${hitsThs}<th></th></tr>`;
 
@@ -910,34 +910,41 @@ function renderLineView(inputData: ComboInput): void {
       .join("");
 
     const dmg = damageRange(player, weapon, enemy, hitsType, ctx);
-    const hitReq = reqs[hitsStep - 1]!;
-    const accOk = Number.isFinite(hitReq) && hitReq <= maxHitCap && currentHit >= hitReq;
     const threshold = num("lineThreshold", 100);
     const critC = (ctx.includeCriticals ?? true) ? criticalChance(player.lck) / 100 : 0;
+    // 想定Hit% での1本あたり命中率を織り込む
+    const assumedWeapon = { ...weapon, hitPercent: currentHit };
+    const perHitAcc =
+      hitChance(player, assumedWeapon, enemy, hitsType, hitsStep as 1 | 2 | 3, ctx) / 100;
+    const fmtP = (p: number): string =>
+      p >= 99.995 ? "✓" : p >= 99 ? `${p.toFixed(2)}%` : p >= 10 ? `${Math.round(p)}%` : `${p.toFixed(1)}%`;
     let hitsCells: string;
     if (maxHits > 1) {
-      const pByHits = killProbabilityByHits(dmg.min, dmg.max, enemy.hp, maxHits, critC);
+      const pByHits = killProbabilityWithAccuracy(
+        dmg.min, dmg.max, enemy.hp, maxHits, perHitAcc, critC,
+      );
       hitsCells = Array.from({ length: maxHits }, (_, i) => {
         const p = (pByHits[i] ?? 0) * 100;
-        if (p <= 0.005) return `<td class="num hit-no" title="${i + 1}ヒットでは撃破不可">×</td>`;
-        const sure = p >= 99.995;
+        if (p <= 0.005) return `<td class="num hit-no" title="${i + 1}本では撃破不可">×</td>`;
         const meets = p >= threshold - 1e-9;
-        const label = sure ? "✓" : p >= 99.5 ? ">99%" : `${p < 10 ? p.toFixed(1) : Math.round(p)}%`;
-        const cls = !meets ? "hit-low" : accOk ? "hit-ok" : "hit-part";
-        const title = `${i + 1}ヒット命中時の撃破確率 ${p.toFixed(1)}%` +
-          (meets && !accOk ? " (想定Hit%では命中100%でない)" : "") +
-          (!meets ? ` (しきい値 ${threshold}% 未満)` : "");
-        return `<td class="num ${cls}" title="${title}">${label}</td>`;
+        const cls = meets ? "hit-ok" : "hit-low";
+        const title =
+          `${i + 1}本発射時のキル確率 ${p.toFixed(2)}% ` +
+          `(1本あたり命中率 ${(perHitAcc * 100).toFixed(1)}%・命中判定込み)` +
+          (!meets ? ` — しきい値 ${threshold}% 未満` : "");
+        return `<td class="num ${cls}" title="${title}">${fmtP(p)}</td>`;
       }).join("");
     } else {
-      // 単発武器: しきい値を満たす最小ヒット数
-      if (threshold >= 100) {
+      // 単発武器: しきい値を満たす最小発数 (命中判定込み)
+      if (threshold >= 100 && perHitAcc >= 1) {
         const n = minHitsToKill(player, weapon, enemy, hitsType, ctx);
         hitsCells = `<td class="num">${n != null ? `${n}発` : "–"}</td>`;
       } else {
-        const pByHits = killProbabilityByHits(dmg.min, dmg.max, enemy.hp, 30, critC);
+        const pByHits = killProbabilityWithAccuracy(
+          dmg.min, dmg.max, enemy.hp, 30, perHitAcc, critC,
+        );
         const idx = pByHits.findIndex((p) => p * 100 >= threshold - 1e-9);
-        hitsCells = `<td class="num">${idx >= 0 ? `${idx + 1}発` : "–"}</td>`;
+        hitsCells = `<td class="num" title="しきい値 ${threshold}% を満たす最小発数 (命中判定込み)">${idx >= 0 ? `${idx + 1}発` : "–"}</td>`;
       }
     }
 

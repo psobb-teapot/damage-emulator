@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { killProbabilityByHits } from "../src/index.js";
+import { killProbabilityByHits, killProbabilityWithAccuracy } from "../src/index.js";
 
 describe("killProbabilityByHits (nヒット命中時の撃破確率)", () => {
   it("最小ロール×n ≥ HP なら確率 1 (確定)", () => {
@@ -45,5 +45,40 @@ describe("killProbabilityByHits (nヒット命中時の撃破確率)", () => {
   it("ダメージ0なら常に0", () => {
     const p = killProbabilityByHits(0, 0, 100, 3);
     expect(p).toEqual([0, 0, 0]);
+  });
+});
+
+describe("killProbabilityWithAccuracy (命中判定込み)", () => {
+  it("命中率100%なら条件付き確率と一致", () => {
+    const cond = killProbabilityByHits(500, 600, 2850, 5);
+    const withAcc = killProbabilityWithAccuracy(500, 600, 2850, 5, 1);
+    for (let i = 0; i < 5; i++) expect(withAcc[i]).toBeCloseTo(cond[i]!, 10);
+  });
+
+  it("命中率0%なら常に0", () => {
+    const p = killProbabilityWithAccuracy(500, 600, 1000, 5, 0);
+    expect(p).toEqual([0, 0, 0, 0, 0]);
+  });
+
+  it("1発確殺×命中率90% → n本での確率は 1-(0.1)^n", () => {
+    const p = killProbabilityWithAccuracy(1000, 1000, 500, 3, 0.9);
+    expect(p[0]).toBeCloseTo(0.9);
+    expect(p[1]).toBeCloseTo(1 - 0.01);
+    expect(p[2]).toBeCloseTo(1 - 0.001);
+  });
+
+  it("2発必要×命中率90%・5本 → P(命中≥2) と一致", () => {
+    // 確定2発 (min=max=500, hp=1000)
+    const p = killProbabilityWithAccuracy(500, 500, 1000, 5, 0.9);
+    // P(X≥2), X~Bin(5,0.9) = 1 − P(0) − P(1)
+    const p0 = Math.pow(0.1, 5);
+    const p1 = 5 * 0.9 * Math.pow(0.1, 4);
+    expect(p[4]).toBeCloseTo(1 - p0 - p1, 10);
+  });
+
+  it("命中率について単調", () => {
+    const lo = killProbabilityWithAccuracy(500, 600, 2850, 5, 0.5);
+    const hi = killProbabilityWithAccuracy(500, 600, 2850, 5, 0.9);
+    for (let i = 0; i < 5; i++) expect(hi[i]!).toBeGreaterThanOrEqual(lo[i]!);
   });
 });
