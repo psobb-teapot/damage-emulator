@@ -34,9 +34,6 @@
           <select id="cls" class="card-select" aria-label="クラス"></select>
           <div class="card-summary" id="charSummary"></div>
           <div class="card-summary chips" id="equipChips" title="装備中の防具・ユニット"></div>
-          <div class="compare-actions">
-            <button type="button" id="clsCompareBtn" title="現在の武器・装備・敵で全12クラスの最適コンボを比較">全クラスで比較</button>
-          </div>
           <div class="quick-row quick-row-single">
             <label class="quick-field">
               <span>シフタ Lv <output id="shiftaOut">0</output> <small>(自分の ATP)</small></span>
@@ -173,17 +170,6 @@
           <div class="card-title">敵 <small>(Ultimate)</small></div>
           <select id="enPreset" class="card-select" aria-label="敵"></select>
           <div class="card-summary" id="enSummary"></div>
-          <div class="compare-actions">
-            <button type="button" id="cmpAdd" title="この敵を比較リストへ追加">+ 比較に追加</button>
-            <span class="compare-actions-group" title="種族単位で比較リストへ一括追加">
-              <button type="button" data-cmp-type="Native">Native</button>
-              <button type="button" data-cmp-type="A.Beast">A.Beast</button>
-              <button type="button" data-cmp-type="Machine">Machine</button>
-              <button type="button" data-cmp-type="Dark">Dark</button>
-              <button type="button" id="cmpAll">全て</button>
-              <button type="button" id="cmpClear">クリア</button>
-            </span>
-          </div>
           <div class="quick-row">
             <label class="quick-check">
               <input type="checkbox" id="enSolo" />
@@ -278,8 +264,16 @@
 
     </div>
 
-    <!-- 結果 -->
-    <aside class="results" id="results" aria-live="polite">
+      <!-- ビュー切替タブ -->
+      <nav class="view-tabs" role="tablist" aria-label="表示切替">
+        <button type="button" data-view="detail" class="view-tab view-active" role="tab">単体詳細</button>
+        <button type="button" data-view="enemies" class="view-tab" role="tab">複数の敵 <span class="tab-count" id="enemiesCount" hidden></span></button>
+        <button type="button" data-view="line" class="view-tab" role="tab">確定ライン <span class="tab-count" id="lineCount" hidden></span></button>
+        <button type="button" data-view="classes" class="view-tab" role="tab">クラス比較</button>
+      </nav>
+
+    <!-- タブ1: 単体詳細 -->
+    <section class="view-section" id="view-detail" aria-live="polite">
       <div class="panel result-panel">
         <div class="result-error" id="resultError" hidden></div>
 
@@ -335,15 +329,79 @@
         <div class="result-notes" id="specialNotes"></div>
         <div class="result-cost" id="resultCost" hidden></div>
       </div>
-    </aside>
+    </section>
 
-    <!-- 全クラスで最適コンボを比較 -->
-    <section class="panel compare-panel" id="classComparePanel" hidden>
-      <div class="compare-head">
-        <span class="card-title">全クラスで最適コンボを比較
-          <small>(Lv200 ステータス + 現在の装備・敵 / 装備可否は未判定 / 行クリックで反映)</small></span>
-        <button type="button" class="panel-close" id="clsCompareClose" title="閉じる">×</button>
+    <!-- タブ2: 複数の敵 -->
+    <section class="view-section panel" id="view-enemies" hidden>
+      <p class="view-desc">同じキャラ・装備・コンボで複数の敵に対する結果を一覧します。行クリックで単体詳細へ。</p>
+      <div class="compare-actions">
+        <button type="button" class="cmp-add-current" title="敵カードで選択中の敵を追加">+ 選択中の敵を追加</button>
+        <span class="compare-actions-group" title="種族単位で一括追加">
+          <button type="button" data-cmp-type="Native">Native</button>
+          <button type="button" data-cmp-type="A.Beast">A.Beast</button>
+          <button type="button" data-cmp-type="Machine">Machine</button>
+          <button type="button" data-cmp-type="Dark">Dark</button>
+          <button type="button" class="cmp-all">全て</button>
+          <button type="button" class="cmp-clear">クリア</button>
+        </span>
       </div>
+      <div class="compare-empty" id="enemiesEmpty">上のボタンで敵をリストへ追加してください。</div>
+      <div class="compare-scroll">
+        <table class="hit-table compare-table" id="enemiesTable" hidden>
+          <thead id="enemiesHead">
+            <tr>
+              <th data-sort="name" class="sortable">敵</th>
+              <th data-sort="hp" class="sortable">HP</th>
+              <th data-sort="avg" class="sortable">平均合計 <small>(全弾命中)</small></th>
+              <th>%HP</th>
+              <th data-sort="kill" class="sortable">キル確率</th>
+              <th data-sort="acc" class="sortable">総合命中率</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="compareRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- タブ3: 確定ライン (逆算) -->
+    <section class="view-section panel" id="view-line" hidden>
+      <p class="view-desc">
+        命中100%に必要な Hit% (コンボ段ごと) と、最小ロール・クリなしで確定撃破できるヒット数を逆算します。
+        判定: <span class="hit-ok">✓ 確定</span> / <span class="hit-part">△ ダメージは足りるが想定Hit%では命中不確定</span> / <span class="hit-no">× ダメージ不足</span>
+      </p>
+      <div class="line-controls">
+        <label class="quick-field line-hit">
+          <span>想定 Hit% <output id="lineHitOut">0</output> <small>(武器のHit%とは独立に試せます)</small></span>
+          <input type="range" id="lineHit" min="0" max="100" value="0" />
+        </label>
+      </div>
+      <div class="compare-actions">
+        <button type="button" class="cmp-add-current" title="敵カードで選択中の敵を追加">+ 選択中の敵を追加</button>
+        <span class="compare-actions-group" title="種族単位で一括追加">
+          <button type="button" data-cmp-type="Native">Native</button>
+          <button type="button" data-cmp-type="A.Beast">A.Beast</button>
+          <button type="button" data-cmp-type="Machine">Machine</button>
+          <button type="button" data-cmp-type="Dark">Dark</button>
+          <button type="button" class="cmp-all">全て</button>
+          <button type="button" class="cmp-clear">クリア</button>
+        </span>
+      </div>
+      <div class="compare-empty" id="lineEmpty">上のボタンで敵をリストへ追加してください。</div>
+      <div class="compare-scroll">
+        <table class="hit-table compare-table" id="lineTable" hidden>
+          <thead id="lineHead"></thead>
+          <tbody id="lineRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- タブ4: クラス比較 -->
+    <section class="view-section panel" id="view-classes" hidden>
+      <p class="view-desc">
+        現在の武器・装備・敵に対する全12クラスの最適コンボ
+        (Lv200 ステータス基準・装備可否は未判定)。行クリックでそのクラスとコンボを反映します。
+      </p>
       <div class="compare-scroll">
         <table class="hit-table compare-table">
           <thead>
@@ -357,24 +415,6 @@
             </tr>
           </thead>
           <tbody id="classCompareRows"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- 複数の敵との比較 (psostats 相当) -->
-    <section class="panel compare-panel" id="comparePanel" hidden>
-      <div class="compare-head">
-        <span class="card-title">複数の敵で比較 <small>(<span id="compareCount">0</span>体 · 行クリックで詳細表示)</small></span>
-        <span class="mode-toggle">
-          <button type="button" id="cmpModeResult" class="mode-active">結果</button>
-          <button type="button" id="cmpModeReverse" title="命中100%に必要なHit%と確定撃破ラインを逆算">確定ライン (逆算)</button>
-        </span>
-      </div>
-      <div class="compare-scroll">
-        <table class="hit-table compare-table">
-          <thead id="compareHead">
-          </thead>
-          <tbody id="compareRows"></tbody>
         </table>
       </div>
     </section>

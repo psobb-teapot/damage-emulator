@@ -523,27 +523,31 @@ function updateChips(inputData: ComboInput): void {
   }
 }
 
+/* ================= ビュー切替タブ ================= */
+
+type ViewId = "detail" | "enemies" | "line" | "classes";
+let activeView: ViewId = "detail";
+
+function setActiveView(view: ViewId): void {
+  activeView = view;
+  for (const btn of document.querySelectorAll<HTMLButtonElement>(".view-tab")) {
+    btn.classList.toggle("view-active", btn.dataset.view === view);
+  }
+  for (const id of ["detail", "enemies", "line", "classes"] as const) {
+    $(`view-${id}`).hidden = id !== view;
+  }
+}
+
+document.querySelector(".view-tabs")!.addEventListener("click", (ev) => {
+  const btn = (ev.target as HTMLElement).closest<HTMLButtonElement>(".view-tab");
+  if (!btn) return;
+  setActiveView(btn.dataset.view as ViewId);
+  render();
+});
+
 /* ================= 全クラスで最適コンボを比較 ================= */
 
-let classCompareVisible = false;
-
-$("clsCompareBtn").addEventListener("click", () => {
-  classCompareVisible = !classCompareVisible;
-  render();
-});
-$("clsCompareClose").addEventListener("click", () => {
-  classCompareVisible = false;
-  render();
-});
-
 function renderClassCompare(inputData: ComboInput): void {
-  const panel = $("classComparePanel");
-  if (!classCompareVisible) {
-    panel.hidden = true;
-    return;
-  }
-  panel.hidden = false;
-
   const rows = Object.keys(CLASSES)
     .map((clsName) => {
       const armor = armorTotals(inputData.weapon);
@@ -601,33 +605,20 @@ function renderClassCompare(inputData: ComboInput): void {
         if (radio) radio.checked = true;
         input(`hits${step}`).value = "";
       }
+      setActiveView("detail");
       render();
     });
     tbody.appendChild(tr);
   });
 }
 
-/* ================= 複数の敵との比較 ================= */
+/* ================= 複数の敵リスト (「複数の敵」「確定ライン」タブで共有) ================= */
 
 let compareList: string[] = [];
-let compareMode: "result" | "reverse" = "result";
 let compareSort: { col: "name" | "hp" | "avg" | "kill" | "acc" | null; asc: boolean } = {
   col: null,
   asc: false,
 };
-
-$("cmpModeResult").addEventListener("click", () => {
-  compareMode = "result";
-  $("cmpModeResult").classList.add("mode-active");
-  $("cmpModeReverse").classList.remove("mode-active");
-  render();
-});
-$("cmpModeReverse").addEventListener("click", () => {
-  compareMode = "reverse";
-  $("cmpModeReverse").classList.add("mode-active");
-  $("cmpModeResult").classList.remove("mode-active");
-  render();
-});
 
 function addToCompare(keys: string[]): void {
   for (const key of keys) {
@@ -636,10 +627,13 @@ function addToCompare(keys: string[]): void {
   render();
 }
 
-$("cmpAdd").addEventListener("click", () => {
-  const key = select("enPreset").value;
-  if (key !== "custom") addToCompare([key]);
-});
+// 追加ボタン群は「複数の敵」「確定ライン」両タブに同じものがある
+for (const btn of document.querySelectorAll<HTMLButtonElement>(".cmp-add-current")) {
+  btn.addEventListener("click", () => {
+    const key = select("enPreset").value;
+    if (key !== "custom") addToCompare([key]);
+  });
+}
 for (const btn of document.querySelectorAll<HTMLButtonElement>("[data-cmp-type]")) {
   btn.addEventListener("click", () => {
     const type = btn.dataset.cmpType!;
@@ -650,27 +644,20 @@ for (const btn of document.querySelectorAll<HTMLButtonElement>("[data-cmp-type]"
     );
   });
 }
-$("cmpAll").addEventListener("click", () => addToCompare(Object.keys(activeEnemies())));
-$("cmpClear").addEventListener("click", () => {
-  compareList = [];
-  render();
-});
+for (const btn of document.querySelectorAll<HTMLButtonElement>(".cmp-all")) {
+  btn.addEventListener("click", () => addToCompare(Object.keys(activeEnemies())));
+}
+for (const btn of document.querySelectorAll<HTMLButtonElement>(".cmp-clear")) {
+  btn.addEventListener("click", () => {
+    compareList = [];
+    render();
+  });
+}
 
-const RESULT_HEAD_HTML = `
-  <tr>
-    <th data-sort="name" class="sortable">敵</th>
-    <th data-sort="hp" class="sortable">HP</th>
-    <th data-sort="avg" class="sortable">平均合計 <small>(全弾命中)</small></th>
-    <th>%HP</th>
-    <th data-sort="kill" class="sortable">キル確率</th>
-    <th data-sort="acc" class="sortable">総合命中率</th>
-    <th></th>
-  </tr>`;
-
-// ソートはヘッダへの委譲で処理 (逆算モードではソートなし・エリア順固定)
-$("compareHead").addEventListener("click", (ev) => {
+// ソートはヘッダへの委譲で処理 (「複数の敵」タブのみ)
+$("enemiesHead").addEventListener("click", (ev) => {
   const th = (ev.target as HTMLElement).closest<HTMLElement>("th[data-sort]");
-  if (!th || compareMode !== "result") return;
+  if (!th) return;
   const col = th.dataset.sort as NonNullable<typeof compareSort.col>;
   // クリックごとに 降順 → 昇順 → エリア順 (既定) を循環
   if (compareSort.col !== col) compareSort = { col, asc: false };
@@ -679,23 +666,27 @@ $("compareHead").addEventListener("click", (ev) => {
   render();
 });
 
-function renderCompare(inputData: ComboInput): void {
-  const panel = $("comparePanel");
-  if (compareList.length === 0) {
-    panel.hidden = true;
-    return;
-  }
-  panel.hidden = false;
-
+/** タブのバッジと空表示/テーブルの切替。有効な敵数を返す */
+function syncCompareListState(): number {
   const dataset = activeEnemies();
   compareList = compareList.filter((key) => dataset[key]);
-  $("compareCount").textContent = String(compareList.length);
-
-  if (compareMode === "reverse") {
-    renderCompareReverse(inputData, dataset);
-    return;
+  const n = compareList.length;
+  for (const [badgeId, emptyId, tableId] of [
+    ["enemiesCount", "enemiesEmpty", "enemiesTable"],
+    ["lineCount", "lineEmpty", "lineTable"],
+  ] as const) {
+    const badge = $(badgeId);
+    badge.hidden = n === 0;
+    badge.textContent = String(n);
+    $(emptyId).hidden = n > 0;
+    $(tableId).hidden = n === 0;
   }
-  $("compareHead").innerHTML = RESULT_HEAD_HTML;
+  return n;
+}
+
+function renderEnemiesView(inputData: ComboInput): void {
+  if (compareList.length === 0) return;
+  const dataset = activeEnemies();
 
   const rows = compareList.map((key) => {
     const enemy = dataset[key]!;
@@ -760,6 +751,7 @@ function renderCompare(inputData: ComboInput): void {
     tr.addEventListener("click", () => {
       select("enPreset").value = row.key;
       applyEnemyPreset();
+      setActiveView("detail");
       render();
     });
     tr.querySelector(".cmp-remove")!.addEventListener("click", (ev) => {
@@ -771,14 +763,14 @@ function renderCompare(inputData: ComboInput): void {
   }
 }
 
-/** 確定ライン (逆算) モードの描画 */
-function renderCompareReverse(
-  inputData: ComboInput,
-  dataset: Record<string, import("../types.js").Enemy>,
-): void {
+/** 確定ライン (逆算) タブの描画。想定Hit% スライダーの値で達成判定する */
+function renderLineView(inputData: ComboInput): void {
+  $("lineHitOut").textContent = input("lineHit").value;
+  if (compareList.length === 0) return;
+  const dataset = activeEnemies();
   const { player, weapon, attacks } = inputData;
   const ctx = inputData.context ?? {};
-  const currentHit = weapon.hitPercent ?? 0;
+  const currentHit = num("lineHit"); // 想定Hit% (武器のHit%とは独立)
   const maxHitCap = WEAPONS[select("wpPreset").value]?.maxHitPercent ?? 100;
 
   const hitsOf = (a: (typeof attacks)[number]): number =>
@@ -810,14 +802,14 @@ function renderCompareReverse(
           (_, i) => `<th title="最小ロール・クリなしで確定撃破できるか">${ATTACK_LABELS[hitsType]}×${i + 1}</th>`,
         ).join("")
       : `<th title="最小ロール・クリなしで確定撃破に必要なヒット数">確殺ヒット数 <small>(${ATTACK_LABELS[hitsType]})</small></th>`;
-  $("compareHead").innerHTML =
+  $("lineHead").innerHTML =
     `<tr><th>敵</th>${stepThs}${hitsThs}<th></th></tr>`;
 
   const keys = [...compareList].sort(
     (a, b) => (ENEMY_ORDER.get(a) ?? 999) - (ENEMY_ORDER.get(b) ?? 999),
   );
 
-  const tbody = $("compareRows");
+  const tbody = $("lineRows");
   tbody.innerHTML = "";
   let currentArea = "";
   const colCount = 2 + attacks.length + (maxHits > 1 ? maxHits : 1);
@@ -841,7 +833,7 @@ function renderCompareReverse(
           return `<td class="num req-imp" title="この武器の Hit% 上限では命中100%にできない">不可</td>`;
         }
         const ok = currentHit >= req;
-        return `<td class="num ${ok ? "req-ok" : "req-ng"}" title="${ok ? "現在の Hit% で達成済み" : `Hit% を ${req} 以上にすると命中100%`}">${req}</td>`;
+        return `<td class="num ${ok ? "req-ok" : "req-ng"}" title="${ok ? "想定 Hit% で達成" : `Hit% を ${req} 以上にすると命中100%`}">${req}</td>`;
       })
       .join("");
 
@@ -854,7 +846,7 @@ function renderCompareReverse(
         const n = i + 1;
         const dmgOk = minDmg > 0 && minDmg * n >= enemy.hp;
         if (!dmgOk) return `<td class="num hit-no" title="最小ロールではダメージ不足">×</td>`;
-        if (!accOk) return `<td class="num hit-part" title="ダメージは足りるが命中100%でない (Hit%不足)">△</td>`;
+        if (!accOk) return `<td class="num hit-part" title="ダメージは足りるが想定Hit%では命中100%でない">△</td>`;
         return `<td class="num hit-ok" title="確定撃破 (min roll × ${n}ヒット ≥ HP・命中100%)">✓</td>`;
       }).join("");
     } else {
@@ -873,6 +865,7 @@ function renderCompareReverse(
     tr.addEventListener("click", () => {
       select("enPreset").value = key;
       applyEnemyPreset();
+      setActiveView("detail");
       render();
     });
     tr.querySelector(".cmp-remove")!.addEventListener("click", (ev) => {
@@ -894,7 +887,7 @@ const STATE_FIELDS = [
   "shifta", "zalure", "ctxDistance", "ctxFrozen", "ctxParalyzed", "ctxCrits",
   "ctxV501", "ctxV502", "ctxSmartlink", "ctxSnGlitch",
   "frame", "barrier", "possUnit", "commanderBlade", "armorAtp", "armorAta",
-  "hits1", "hits2", "hits3",
+  "hits1", "hits2", "hits3", "lineHit",
 ] as const;
 
 function serializeState(): string {
@@ -905,6 +898,7 @@ function serializeState(): string {
   }
   for (let s = 1; s <= 3; s++) state[`combo${s}`] = checkedCombo(s);
   if (compareList.length > 0) state["cmp"] = compareList.join("|");
+  if (activeView !== "detail") state["view"] = activeView;
   return btoa(unescape(encodeURIComponent(JSON.stringify(state))));
 }
 
@@ -922,6 +916,7 @@ function restoreState(encoded: string): boolean {
       if (radio) radio.checked = true;
     }
     compareList = state["cmp"] ? state["cmp"].split("|") : [];
+    if (state["view"]) setActiveView(state["view"] as ViewId);
     return true;
   } catch {
     return false;
@@ -1107,8 +1102,11 @@ function render(): void {
     $("comboFramesOut").textContent =
       fr.frames != null ? `所要フレーム: ${fr.frames}F` : "所要フレーム: データなし";
 
-    renderClassCompare(inputData);
-    renderCompare(inputData);
+    // タブごとの表示
+    const listCount = syncCompareListState();
+    if (activeView === "enemies" && listCount > 0) renderEnemiesView(inputData);
+    if (activeView === "line") renderLineView(inputData);
+    if (activeView === "classes") renderClassCompare(inputData);
     syncUrl();
   } catch (e) {
     errorBox.hidden = false;
@@ -1203,7 +1201,10 @@ if (!restored) {
   applyEnemyPreset();
   // 終盤の標準装備 Red Ring をデフォルトに
   select("barrier").value = "Red Ring";
+  // 想定Hit% の初期値は武器の Hit%
+  input("lineHit").value = input("wpHit").value;
 }
 $("shiftaOut").textContent = input("shifta").value;
 $("zalureOut").textContent = input("zalure").value;
+setActiveView(activeView);
 render();
