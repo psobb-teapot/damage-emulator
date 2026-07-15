@@ -129,13 +129,15 @@ fillSelect(select("wpSpecial"), [
   ...Object.keys(SPECIALS).map((k): [string, string] => [k, k]),
 ]);
 
+// ゲーム進行順のエリア順序
+const LOCATION_ORDER = [
+  "Forest", "Caves", "Mines", "Ruins",
+  "Temple", "Spaceship", "CCA", "Seabed", "Tower",
+  "Crater", "Desert",
+];
+/** 敵キー → エリア順の通し番号 (セレクト・比較テーブルの既定順) */
+const ENEMY_ORDER = new Map<string, number>();
 {
-  // ゲーム進行順のエリア順序
-  const LOCATION_ORDER = [
-    "Forest", "Caves", "Mines", "Ruins",
-    "Temple", "Spaceship", "CCA", "Seabed", "Tower",
-    "Crater", "Desert",
-  ];
   const groups = new Map<string, [string, string][]>();
   for (const loc of LOCATION_ORDER) {
     const eps = Object.values(ENEMIES).find((e) => e.location === loc)?.episode;
@@ -145,6 +147,10 @@ fillSelect(select("wpSpecial"), [
     const label = `Ep${e.episode} ${e.location ?? "?"}`;
     if (!groups.has(label)) groups.set(label, []);
     groups.get(label)!.push([key, key]);
+  }
+  let order = 0;
+  for (const [, entries] of groups) {
+    for (const [key] of entries) ENEMY_ORDER.set(key, order++);
   }
   fillGroupedSelect(select("enPreset"), [["custom", "カスタム敵"]], groups);
 }
@@ -531,7 +537,10 @@ $("cmpClear").addEventListener("click", () => {
 for (const th of document.querySelectorAll<HTMLElement>(".compare-table th.sortable")) {
   th.addEventListener("click", () => {
     const col = th.dataset.sort as NonNullable<typeof compareSort.col>;
-    compareSort = { col, asc: compareSort.col === col ? !compareSort.asc : false };
+    // クリックごとに 降順 → 昇順 → エリア順 (既定) を循環
+    if (compareSort.col !== col) compareSort = { col, asc: false };
+    else if (!compareSort.asc) compareSort = { col, asc: true };
+    else compareSort = { col: null, asc: false };
     render();
   });
 }
@@ -572,6 +581,9 @@ function renderCompare(inputData: ComboInput): void {
       if (col === "kill") return (a.kill - b.kill) * dir;
       return (a.acc - b.acc) * dir;
     });
+  } else {
+    // 既定はエリア順 (Ep1 Forest → … → Ep4 Desert)
+    rows.sort((a, b) => (ENEMY_ORDER.get(a.key) ?? 999) - (ENEMY_ORDER.get(b.key) ?? 999));
   }
 
   const tbody = $("compareRows");
@@ -581,7 +593,7 @@ function renderCompare(inputData: ComboInput): void {
     tr.className = "compare-row" + (row.key === select("enPreset").value ? " row-active" : "");
     const killClass = row.kill >= 99.95 ? "kill-hi" : row.kill <= 0.05 ? "kill-lo" : "";
     tr.innerHTML = `
-      <td>${row.key} <span class="badge badge-muted">${row.enemy.enemyType ?? ""}</span></td>
+      <td>${row.key} <span class="badge badge-muted">Ep${row.enemy.episode} ${row.enemy.location ?? ""}</span> <span class="badge badge-muted">${row.enemy.enemyType ?? ""}</span></td>
       <td class="num">${fmt(row.enemy.hp)}</td>
       <td class="num">${fmt(row.avg)}</td>
       <td class="pct-cell"><span class="pct-bar" style="width:${row.pct}%"></span><span class="pct-text">${row.pct.toFixed(0)}%</span></td>
