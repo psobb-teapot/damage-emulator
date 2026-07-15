@@ -130,7 +130,17 @@ fillSelect(select("wpSpecial"), [
 ]);
 
 {
+  // ゲーム進行順のエリア順序
+  const LOCATION_ORDER = [
+    "Forest", "Caves", "Mines", "Ruins",
+    "Temple", "Spaceship", "CCA", "Seabed", "Tower",
+    "Crater", "Desert",
+  ];
   const groups = new Map<string, [string, string][]>();
+  for (const loc of LOCATION_ORDER) {
+    const eps = Object.values(ENEMIES).find((e) => e.location === loc)?.episode;
+    groups.set(`Ep${eps} ${loc}`, []);
+  }
   for (const [key, e] of Object.entries(ENEMIES)) {
     const label = `Ep${e.episode} ${e.location ?? "?"}`;
     if (!groups.has(label)) groups.set(label, []);
