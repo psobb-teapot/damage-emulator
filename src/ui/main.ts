@@ -454,7 +454,7 @@ function updateSummaries(inputData: ComboInput): void {
     `DFP <b>${fmt(e.dfp)}</b>`,
     `EVP <b>${fmt(e.evp)}</b>`,
     `EDK/ESP <b>${e.edk}/${e.esp}</b>`,
-    preset?.enemyType ? `<span class="badge badge-muted">${preset.enemyType}</span>` : "",
+    typeBadge(preset?.enemyType),
     e.isBoss ? `<span class="badge badge-warn">ボス</span>` : "",
     preset?.ccaMiniboss ? `<span class="badge badge-warn">属性%無効</span>` : "",
     input("enSolo").checked ? `<span class="badge">一人用</span>` : "",
@@ -465,6 +465,19 @@ function updateSummaries(inputData: ComboInput): void {
 
 function chip(text: string): string {
   return `<span class="chip">${text}</span>`;
+}
+
+/** 種族バッジ (Native=深緑 / A.Beast=黒めの赤 / Machine=シルバー / Dark=紫めの黒) */
+function typeBadge(enemyType: string | undefined): string {
+  if (!enemyType) return "";
+  const cls =
+    {
+      "Native": "badge-type-native",
+      "A.Beast": "badge-type-abeast",
+      "Machine": "badge-type-machine",
+      "Dark": "badge-type-dark",
+    }[enemyType] ?? "badge-muted";
+  return `<span class="badge ${cls}">${enemyType}</span>`;
 }
 
 function updateChips(inputData: ComboInput): void {
@@ -609,7 +622,7 @@ function renderCompare(inputData: ComboInput): void {
       ? ""
       : ` <span class="badge badge-muted">Ep${row.enemy.episode} ${row.enemy.location ?? ""}</span>`;
     tr.innerHTML = `
-      <td class="${grouped ? "cell-indent" : ""}">${row.key}${areaBadge} <span class="badge badge-muted">${row.enemy.enemyType ?? ""}</span></td>
+      <td class="${grouped ? "cell-indent" : ""}">${row.key}${areaBadge} ${typeBadge(row.enemy.enemyType)}</td>
       <td class="num">${fmt(row.enemy.hp)}</td>
       <td class="num">${fmt(row.avg)}</td>
       <td class="pct-cell"><span class="pct-bar" style="width:${row.pct}%"></span><span class="pct-text">${row.pct.toFixed(0)}%</span></td>

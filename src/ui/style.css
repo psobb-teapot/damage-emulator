@@ -313,6 +313,32 @@ a {
   color: var(--muted);
 }
 
+/* 種族カラー: Native=深緑 / A.Beast=黒めの赤 / Machine=シルバー / Dark=紫めの黒 */
+
+.badge-type-native {
+  color: #4caf7d;
+  border-color: rgba(46, 125, 80, 0.8);
+  background: rgba(30, 90, 55, 0.3);
+}
+
+.badge-type-abeast {
+  color: #d06055;
+  border-color: rgba(120, 35, 30, 0.9);
+  background: rgba(80, 20, 18, 0.45);
+}
+
+.badge-type-machine {
+  color: #ccd5df;
+  border-color: rgba(180, 190, 205, 0.6);
+  background: rgba(160, 175, 195, 0.12);
+}
+
+.badge-type-dark {
+  color: #a982d8;
+  border-color: rgba(90, 60, 130, 0.9);
+  background: rgba(50, 30, 80, 0.5);
+}
+
 /* ---------- 折りたたみ ---------- */
 
 .card-details summary,
@@ -946,6 +972,26 @@ fieldset.panel {
 #cmpAdd {
   color: var(--photon);
   border-color: rgba(82, 216, 239, 0.5);
+}
+
+.compare-actions button[data-cmp-type="Native"] {
+  color: #4caf7d;
+  border-color: rgba(46, 125, 80, 0.6);
+}
+
+.compare-actions button[data-cmp-type="A.Beast"] {
+  color: #d06055;
+  border-color: rgba(120, 35, 30, 0.7);
+}
+
+.compare-actions button[data-cmp-type="Machine"] {
+  color: #ccd5df;
+  border-color: rgba(180, 190, 205, 0.45);
+}
+
+.compare-actions button[data-cmp-type="Dark"] {
+  color: #a982d8;
+  border-color: rgba(90, 60, 130, 0.7);
 }
 
 .compare-actions-group {
