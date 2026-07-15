@@ -45,8 +45,16 @@ export interface GuaranteedComboResult {
 }
 
 export interface KillMatrixCell {
-  /** 現在の武器 Hit% のままで確定撃破できる最速コンボ (無ければ null) */
+  /**
+   * 現在の武器 Hit% のままで確定撃破できるコンボ (無ければ null)。
+   * robust なコンボを優先し、その中で最速のもの。
+   */
   guaranteed: GuaranteedComboResult | null;
+  /**
+   * guaranteed より速い確定コンボ (robust でないため入力遅延での
+   * 継承制御が前提)。guaranteed が全体最速のときは null。
+   */
+  guaranteedFast: GuaranteedComboResult | null;
   /**
    * Hit% を上げれば確定になるコンボのうち要求 Hit% が最小のもの。
    * 武器の Hit% 上限 (maxHitPercent) を超える場合は null。
@@ -122,7 +130,8 @@ export function guaranteedKillCombo(
       : (weapon.hitsPerAttack ?? DEFAULT_HITS_PER_ATTACK[weapon.kind]);
   const canSpecial = weapon.special != null;
 
-  let guaranteed: GuaranteedComboResult | null = null;
+  let bestRobust: GuaranteedComboResult | null = null;
+  let bestAny: GuaranteedComboResult | null = null;
   let withMoreHit: GuaranteedComboResult | null = null;
   let bestMinDamage = 0;
   const hitCap = weapon.maxHitPercent ?? 100;
@@ -204,12 +213,8 @@ export function guaranteedKillCombo(
         };
 
         if (accs.every((acc) => acc >= 100 - 1e-9)) {
-          // robust なコンボを優先し、同格ならフレーム数で選ぶ
-          const better =
-            guaranteed === null ||
-            (result.robust && !guaranteed.robust) ||
-            (result.robust === guaranteed.robust && betterFrames(result, guaranteed));
-          if (better) guaranteed = result;
+          if (betterFrames(result, bestAny)) bestAny = result;
+          if (result.robust && betterFrames(result, bestRobust)) bestRobust = result;
         }
 
         if (Number.isFinite(requiredHit) && requiredHit <= hitCap) {
@@ -224,7 +229,10 @@ export function guaranteedKillCombo(
     }
   }
 
-  return { guaranteed, withMoreHit, bestMinDamage };
+  // robust を優先しつつ、より速い非 robust コンボがあれば別枠で返す
+  const guaranteed = bestRobust ?? bestAny;
+  const guaranteedFast = bestAny !== null && bestAny !== guaranteed ? bestAny : null;
+  return { guaranteed, guaranteedFast, withMoreHit, bestMinDamage };
 }
 
 export interface KillMatrixInput {

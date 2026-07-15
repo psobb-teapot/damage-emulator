@@ -127,6 +127,10 @@ describe("guaranteedKillCombo", () => {
     expect(cell.guaranteed).not.toBeNull();
     expect(cell.guaranteed!.attacks).toEqual(["special", "normal", "special"]);
     expect(cell.guaranteed!.robust).toBe(true);
+    // より速い非 robust コンボ (N-S-S) は guaranteedFast として併記される
+    expect(cell.guaranteedFast).not.toBeNull();
+    expect(cell.guaranteedFast!.robust).toBe(false);
+    expect(cell.guaranteedFast!.frames!).toBeLessThan(cell.guaranteed!.frames!);
   });
 
   it("SNグリッチ: プロジェクタイル特殊武器 (Raikiri) は特殊段のみ適用", () => {
