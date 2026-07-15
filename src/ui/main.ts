@@ -140,6 +140,8 @@ const LOCATION_ORDER = [
 ];
 /** 敵キー → エリア順の通し番号 (セレクト・比較テーブルの既定順) */
 const ENEMY_ORDER = new Map<string, number>();
+/** 通し番号 → 敵キー (URL圧縮のビットマスク用) */
+const ORDERED_ENEMY_KEYS: string[] = [];
 {
   const groups = new Map<string, [string, string][]>();
   for (const loc of LOCATION_ORDER) {
@@ -153,7 +155,10 @@ const ENEMY_ORDER = new Map<string, number>();
   }
   let order = 0;
   for (const [, entries] of groups) {
-    for (const [key] of entries) ENEMY_ORDER.set(key, order++);
+    for (const [key] of entries) {
+      ENEMY_ORDER.set(key, order++);
+      ORDERED_ENEMY_KEYS.push(key);
+    }
   }
   fillGroupedSelect(select("enPreset"), [["custom", "カスタム敵"]], groups);
 }
@@ -1027,47 +1032,109 @@ const STATE_FIELDS = [
   "hits1", "hits2", "hits3", "lineHit", "lineThreshold",
 ] as const;
 
-function serializeState(): string {
+/* --- 圧縮ユーティリティ (URL短縮のため deflate + base64url) --- */
+
+const toBase64Url = (bytes: Uint8Array): string =>
+  btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+
+const fromBase64Url = (s: string): Uint8Array =>
+  Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0));
+
+async function deflate(text: string): Promise<Uint8Array> {
+  const stream = new Blob([text]).stream().pipeThrough(new CompressionStream("deflate-raw"));
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+
+async function inflate(bytes: Uint8Array): Promise<string> {
+  const stream = new Blob([bytes as BlobPart]).stream()
+    .pipeThrough(new DecompressionStream("deflate-raw"));
+  return new Response(stream).text();
+}
+
+/** 比較リスト → エリア順ビットマスクの base64url (135敵 ≈ 23文字) */
+function compareListToBits(): string {
+  const bytes = new Uint8Array(Math.ceil(ORDERED_ENEMY_KEYS.length / 8));
+  for (const key of compareList) {
+    const idx = ENEMY_ORDER.get(key);
+    if (idx != null) bytes[idx >> 3] = (bytes[idx >> 3] ?? 0) | (1 << (idx & 7));
+  }
+  return toBase64Url(bytes);
+}
+
+function bitsToCompareList(bits: string): string[] {
+  const bytes = fromBase64Url(bits);
+  const keys: string[] = [];
+  ORDERED_ENEMY_KEYS.forEach((key, idx) => {
+    if (((bytes[idx >> 3] ?? 0) >> (idx & 7)) & 1) keys.push(key);
+  });
+  return keys;
+}
+
+function serializeStateObject(): Record<string, string> {
   const state: Record<string, string> = {};
   for (const id of STATE_FIELDS) {
     const el = document.getElementById(id) as HTMLInputElement | HTMLSelectElement;
     state[id] = el.type === "checkbox" ? ((el as HTMLInputElement).checked ? "1" : "0") : el.value;
   }
   for (let s = 1; s <= 3; s++) state[`combo${s}`] = checkedCombo(s);
-  if (compareList.length > 0) state["cmp"] = compareList.join("|");
+  if (compareList.length > 0) state["cmpB"] = compareListToBits();
   if (activeView !== "detail") state["view"] = activeView;
-  return btoa(unescape(encodeURIComponent(JSON.stringify(state))));
+  return state;
 }
 
-function restoreState(encoded: string): boolean {
-  try {
-    const state = JSON.parse(decodeURIComponent(escape(atob(encoded)))) as Record<string, string>;
-    for (const id of STATE_FIELDS) {
-      if (!(id in state)) continue;
-      const el = document.getElementById(id) as HTMLInputElement | HTMLSelectElement;
-      if (el.type === "checkbox") (el as HTMLInputElement).checked = state[id] === "1";
-      else el.value = state[id]!;
-    }
-    for (let s = 1; s <= 3; s++) {
-      const radio = comboRadio(s, state[`combo${s}`] ?? "none");
-      if (radio) radio.checked = true;
-    }
-    compareList = state["cmp"] ? state["cmp"].split("|") : [];
-    if (state["view"]) setActiveView(state["view"] as ViewId);
-    return true;
-  } catch {
-    return false;
+function applyState(state: Record<string, string>): boolean {
+  for (const id of STATE_FIELDS) {
+    if (!(id in state)) continue;
+    const el = document.getElementById(id) as HTMLInputElement | HTMLSelectElement;
+    if (el.type === "checkbox") (el as HTMLInputElement).checked = state[id] === "1";
+    else el.value = state[id]!;
   }
+  for (let s = 1; s <= 3; s++) {
+    const radio = comboRadio(s, state[`combo${s}`] ?? "none");
+    if (radio) radio.checked = true;
+  }
+  if (state["cmpB"]) compareList = bitsToCompareList(state["cmpB"]);
+  else compareList = state["cmp"] ? state["cmp"].split("|") : [];
+  if (state["view"]) setActiveView(state["view"] as ViewId);
+  return true;
 }
 
-function syncUrl(): void {
-  const url = new URL(location.href);
-  url.searchParams.set("s", serializeState());
-  history.replaceState(null, "", url);
+async function restoreFromUrl(): Promise<boolean> {
+  const params = new URLSearchParams(location.search);
+  try {
+    const z = params.get("z");
+    if (z) return applyState(JSON.parse(await inflate(fromBase64Url(z))) as Record<string, string>);
+    const s = params.get("s"); // 旧形式 (無圧縮 base64) の共有 URL 互換
+    if (s) return applyState(JSON.parse(decodeURIComponent(escape(atob(s)))) as Record<string, string>);
+  } catch {
+    /* 壊れた共有 URL は既定状態で開く */
+  }
+  return false;
+}
+
+let syncSeq = 0;
+function syncUrl(): Promise<void> {
+  const seq = ++syncSeq;
+  const json = JSON.stringify(serializeStateObject());
+  return deflate(json)
+    .then((bytes) => {
+      if (seq !== syncSeq) return; // 古い書き込みが最新を上書きしないように
+      const url = new URL(location.href);
+      url.searchParams.delete("s");
+      url.searchParams.set("z", toBase64Url(bytes));
+      history.replaceState(null, "", url);
+    })
+    .catch(() => {
+      // CompressionStream 非対応環境では旧形式で保存
+      const url = new URL(location.href);
+      url.searchParams.delete("z");
+      url.searchParams.set("s", btoa(unescape(encodeURIComponent(json))));
+      history.replaceState(null, "", url);
+    });
 }
 
 $("shareBtn").addEventListener("click", async () => {
-  syncUrl();
+  await syncUrl();
   try {
     await navigator.clipboard.writeText(location.href);
     const btn = $("shareBtn");
@@ -1246,7 +1313,7 @@ function render(): void {
     if (activeView === "line") renderLineView(inputData);
     if (activeView === "classes") renderClassCompare(inputData);
     flashIfCondChanged();
-    syncUrl();
+    void syncUrl();
   } catch (e) {
     errorBox.hidden = false;
     errorBox.textContent = e instanceof Error ? e.message : String(e);
@@ -1340,20 +1407,21 @@ document.querySelector("main")!.addEventListener("change", render);
 
 /* ================= 初期状態 ================= */
 
-const params = new URLSearchParams(location.search);
-const restored = params.has("s") && restoreState(params.get("s")!);
-if (!restored) {
-  applyClassPreset();
-  select("wpPreset").value = "Excalibur";
-  applyWeaponPreset();
-  select("enPreset").value = "Bartle";
-  applyEnemyPreset();
-  // 終盤の標準装備 Red Ring をデフォルトに
-  select("barrier").value = "Red Ring";
-  // 想定Hit% の初期値は武器の Hit%
-  input("lineHit").value = input("wpHit").value;
-}
-$("shiftaOut").textContent = input("shifta").value;
-$("zalureOut").textContent = input("zalure").value;
-setActiveView(activeView);
-render();
+void (async () => {
+  const restored = await restoreFromUrl();
+  if (!restored) {
+    applyClassPreset();
+    select("wpPreset").value = "Excalibur";
+    applyWeaponPreset();
+    select("enPreset").value = "Bartle";
+    applyEnemyPreset();
+    // 終盤の標準装備 Red Ring をデフォルトに
+    select("barrier").value = "Red Ring";
+    // 想定Hit% の初期値は武器の Hit%
+    input("lineHit").value = input("wpHit").value;
+  }
+  $("shiftaOut").textContent = input("shifta").value;
+  $("zalureOut").textContent = input("zalure").value;
+  setActiveView(activeView);
+  render();
+})();
