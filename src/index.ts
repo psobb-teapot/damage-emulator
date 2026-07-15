@@ -19,6 +19,7 @@ export { findBestCombo, type AutoComboResult } from "./autoCombo.js";
 export {
   buildKillMatrix,
   guaranteedKillCombo,
+  snGlitchEligible,
   type GuaranteedComboResult,
   type KillMatrixCell,
   type KillMatrixInput,

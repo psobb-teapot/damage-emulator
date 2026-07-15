@@ -52,6 +52,35 @@ export interface KillMatrixCell {
 
 const CANDIDATES: (AttackType | null)[] = [null, "normal", "hard", "special"];
 
+/**
+ * SNグリッチ (命中率グリッチ) を実行できる武器の条件。
+ * 出典: https://wiki.pioneer2.net/w/Accuracy_glitch
+ * - 射撃武器 (スライサー/ハンドガン/ライフル/メックガン/ショット/ランチャー)
+ *   は距離条件を満たせば次段の命中率を完全継承できる
+ * - カードは ES 系のみ
+ * - 近接武器はプロジェクタイル特殊を持つ一部 (Lavis 系、Raikiri 等) の
+ *   特殊攻撃のみ完全継承可
+ * - ダガー/ツインセイバーの「片ヒットのみ段修正継承」は確定計算では
+ *   扱わない (未対応 = 保守側)
+ */
+const SN_GLITCH_RANGED_KINDS: ReadonlySet<string> = new Set([
+  "slicer", "handgun", "rifle", "mechgun", "shot", "launcher",
+]);
+const SN_GLITCH_PROJECTILE_SPECIAL_WEAPONS: ReadonlySet<string> = new Set([
+  "Lavis Cannon", "Lavis Blade", "Plantain Huge Fan", "Girasole",
+  "Double Cannon", "Raikiri", "Orotiagito",
+]);
+
+/** WEAPON の ATTACKTYPE 攻撃で SNグリッチ (次段の命中率継承) が可能か */
+export function snGlitchEligible(weapon: Weapon, attackType: AttackType): boolean {
+  if (SN_GLITCH_RANGED_KINDS.has(weapon.kind)) return true;
+  if (weapon.kind === "card" && weapon.name.startsWith("ES ")) return true;
+  return (
+    attackType === "special" &&
+    SN_GLITCH_PROJECTILE_SPECIAL_WEAPONS.has(weapon.name)
+  );
+}
+
 /** 1ヒットあたりの確定 (最小ロール) ダメージ。確率発動の hpCut は 0 */
 function guaranteedDamagePerHit(
   player: PlayerStats,
@@ -123,13 +152,18 @@ export function guaranteedKillCombo(
         if (totalMinDamage < enemy.hp) continue;
 
         // 全段命中100%に必要な Hit% (厳密値)。どこかの段が Infinity なら不可。
-        // SNグリッチ有効時は1段目を2段目の命中率で置換できるため、
-        // 1段目の要求値は min(1段目, 2段目) になる
-        const reqs = attacks.map((type, i) =>
+        // SNグリッチ有効時、グリッチ可能な段は次段の命中率を継承できるため
+        // 要求値は min(自段, 次段) になる (継承元は次段の素の値)
+        const reqsRaw = attacks.map((type, i) =>
           requiredHitPercent(player, weapon, enemy, type, (i + 1) as 1 | 2 | 3, context),
         );
-        if (context.snGlitch && reqs.length >= 2) {
-          reqs[0] = Math.min(reqs[0]!, reqs[1]!);
+        const reqs = [...reqsRaw];
+        if (context.snGlitch) {
+          for (let k = 0; k + 1 < attacks.length; k++) {
+            if (snGlitchEligible(weapon, attacks[k]!)) {
+              reqs[k] = Math.min(reqs[k]!, reqsRaw[k + 1]!);
+            }
+          }
         }
         const requiredHit = reqs.reduce((max, r) => Math.max(max, r), 0);
 
@@ -142,12 +176,18 @@ export function guaranteedKillCombo(
           requiredHitPercent: requiredHit,
         };
 
-        // 現在の Hit% で全段 100% か (SNグリッチ: 2段目が高ければ1段目を置換)
-        const accs = attacks.map((type, i) =>
+        // 現在の Hit% で全段 100% か。SNグリッチはグリッチ可能な段のみ
+        // 次段の命中率 (素の値) で置換する
+        const accsRaw = attacks.map((type, i) =>
           hitChance(player, weapon, enemy, type, (i + 1) as 1 | 2 | 3, context),
         );
-        if (context.snGlitch && accs.length >= 2 && accs[1]! > accs[0]!) {
-          accs[0] = accs[1]!;
+        const accs = [...accsRaw];
+        if (context.snGlitch) {
+          for (let k = 0; k + 1 < attacks.length; k++) {
+            if (snGlitchEligible(weapon, attacks[k]!) && accsRaw[k + 1]! > accs[k]!) {
+              accs[k] = accsRaw[k + 1]!;
+            }
+          }
         }
         if (accs.every((acc) => acc >= 100 - 1e-9) && betterFrames(result, guaranteed)) {
           guaranteed = result;

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildKillMatrix,
   guaranteedKillCombo,
+  snGlitchEligible,
   hitChance,
   makeWeapon,
   playerFromClass,
@@ -85,13 +86,13 @@ describe("guaranteedKillCombo", () => {
     }
   });
 
-  it("SNグリッチ有効時は1段目の要求 Hit% が2段目で置換される", () => {
-    const weapon = { ...WEAPONS["Excalibur"]!, hitPercent: 0 };
-    const enemy = ENEMIES["Bartle"]!;
-    const plain = guaranteedKillCombo(player, weapon, enemy, "HUcast");
-    const glitched = guaranteedKillCombo(player, weapon, enemy, "HUcast", { snGlitch: true });
-    // グリッチで1段目の縛りが消える分、要求 Hit% は同じか下がる
-    expect(glitched.withMoreHit!.requiredHitPercent).toBeLessThanOrEqual(
+  it("SNグリッチ: 射撃武器 (スライサー) は要求 Hit% が下がる", () => {
+    // 回避が高く1段目が縛りになる敵
+    const evasive: Enemy = { name: "Evasive", hp: 400, dfp: 0, evp: 800 };
+    const weapon = { ...WEAPONS["Diska of Braveman"]!, grind: 9, hitPercent: 0 };
+    const plain = guaranteedKillCombo(player, weapon, evasive, "HUcast");
+    const glitched = guaranteedKillCombo(player, weapon, evasive, "HUcast", { snGlitch: true });
+    expect(glitched.withMoreHit!.requiredHitPercent).toBeLessThan(
       plain.withMoreHit!.requiredHitPercent,
     );
     // その Hit% を付ければグリッチ込みで実際に確定になる
@@ -99,8 +100,26 @@ describe("guaranteedKillCombo", () => {
       ...weapon,
       hitPercent: Math.ceil(glitched.withMoreHit!.requiredHitPercent),
     };
-    const confirm = guaranteedKillCombo(player, withHit, enemy, "HUcast", { snGlitch: true });
+    const confirm = guaranteedKillCombo(player, withHit, evasive, "HUcast", { snGlitch: true });
     expect(confirm.guaranteed).not.toBeNull();
+  });
+
+  it("SNグリッチ: 近接武器 (セイバー) には適用されない", () => {
+    const evasive: Enemy = { name: "Evasive", hp: 400, dfp: 0, evp: 800 };
+    const weapon = { ...WEAPONS["Excalibur"]!, hitPercent: 0 };
+    const plain = guaranteedKillCombo(player, weapon, evasive, "HUcast");
+    const glitched = guaranteedKillCombo(player, weapon, evasive, "HUcast", { snGlitch: true });
+    expect(glitched.withMoreHit!.requiredHitPercent).toBe(
+      plain.withMoreHit!.requiredHitPercent,
+    );
+  });
+
+  it("SNグリッチ: プロジェクタイル特殊武器 (Raikiri) は特殊段のみ適用", () => {
+    const raikiri = WEAPONS["Raikiri"]!;
+    expect(snGlitchEligible(raikiri, "special")).toBe(true);
+    expect(snGlitchEligible(raikiri, "normal")).toBe(false);
+    expect(snGlitchEligible(WEAPONS["Diska of Braveman"]!, "normal")).toBe(true);
+    expect(snGlitchEligible(WEAPONS["Excalibur"]!, "special")).toBe(false);
   });
 
   it("コンボ不可武器は 1 段のみ", () => {
