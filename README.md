@@ -1,7 +1,8 @@
 # pso-damage-emulator
 
-**公開版: https://psobb-teapot.github.io/damage-emulator/**
-(master への push で GitHub Actions が自動デプロイ)
+**公開版: https://psobb-teapot.github.io/rappyruns/**
+(rappyruns リポジトリの `damage-emulator/` サブディレクトリとして管理。
+main への push で GitHub Actions (`.github/workflows/emulator-pages.yml`) が自動デプロイ)
 
 PSOBB (Phantasy Star Online: Blue Burst) のコンボ・ダメージ計算エンジン。
 [psostats.com/combo-calculator](https://psostats.com/combo-calculator) 相当の計算を
