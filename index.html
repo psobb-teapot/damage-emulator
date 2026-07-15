@@ -33,6 +33,12 @@
           <div class="card-title">キャラクター</div>
           <select id="cls" class="card-select" aria-label="クラス"></select>
           <div class="card-summary" id="charSummary"></div>
+          <div class="quick-row quick-row-single">
+            <label class="quick-field">
+              <span>シフタ Lv <output id="shiftaOut">0</output> <small>(自分の ATP)</small></span>
+              <input type="range" id="shifta" min="0" max="30" value="0" />
+            </label>
+          </div>
           <details class="card-details">
             <summary>詳細設定</summary>
             <div class="field-grid">
@@ -125,6 +131,22 @@
           <div class="card-title">敵 <small>(Ultimate)</small></div>
           <select id="enPreset" class="card-select" aria-label="敵"></select>
           <div class="card-summary" id="enSummary"></div>
+          <div class="quick-row quick-row-single">
+            <label class="quick-field">
+              <span>ザルア Lv <output id="zalureOut">0</output> <small>(敵の DFP 減)</small></span>
+              <input type="range" id="zalure" min="0" max="30" value="0" />
+            </label>
+          </div>
+          <div class="quick-row">
+            <label class="quick-check">
+              <input type="checkbox" id="ctxFrozen" />
+              <span>凍結中 <small>(EVP×0.7)</small></span>
+            </label>
+            <label class="quick-check">
+              <input type="checkbox" id="ctxParalyzed" />
+              <span>麻痺中 <small>(EVP×0.85)</small></span>
+            </label>
+          </div>
           <details class="card-details">
             <summary>詳細設定</summary>
             <div class="field-grid">
@@ -178,60 +200,24 @@
         <div class="combo-footer">
           <button type="button" id="autoComboBtn">最適コンボを探索</button>
           <span class="combo-frames" id="comboFramesOut"></span>
+          <span class="combo-options">
+            <label class="quick-check">
+              <input type="checkbox" id="ctxSnGlitch" />
+              <span>SNグリッチ <small>(1段目↔2段目命中)</small></span>
+            </label>
+            <label class="quick-check">
+              <input type="checkbox" id="ctxCrits" checked />
+              <span>クリティカル込み</span>
+            </label>
+            <label class="quick-check combo-distance">
+              <span>距離</span>
+              <input type="number" id="ctxDistance" min="0" value="0" title="HU/FO かつ Smartlink 無しの場合のみ命中率ペナルティ" />
+            </label>
+          </span>
         </div>
       </fieldset>
 
-      <!-- 3. バフ・状態 -->
-      <details class="panel collapsible" id="tuningDetails">
-        <summary>
-          <span class="collapsible-title">バフ・状態</span>
-          <span class="chips" id="tuningChips"></span>
-        </summary>
-        <div class="field-grid grid3">
-          <label class="field">
-            <span>シフタ Lv <output id="shiftaOut">0</output></span>
-            <input type="range" id="shifta" min="0" max="30" value="0" />
-          </label>
-          <label class="field">
-            <span>ザルア Lv <output id="zalureOut">0</output></span>
-            <input type="range" id="zalure" min="0" max="30" value="0" />
-          </label>
-          <label class="field">
-            <span>距離 <small>(HU/FO のみペナルティ)</small></span>
-            <input type="number" id="ctxDistance" min="0" value="0" />
-          </label>
-          <label class="field checkbox">
-            <input type="checkbox" id="ctxFrozen" />
-            <span>敵が凍結中 <small>(EVP×0.7)</small></span>
-          </label>
-          <label class="field checkbox">
-            <input type="checkbox" id="ctxParalyzed" />
-            <span>敵が麻痺中 <small>(EVP×0.85)</small></span>
-          </label>
-          <label class="field checkbox">
-            <input type="checkbox" id="ctxCrits" checked />
-            <span>クリティカルを含める</span>
-          </label>
-          <label class="field checkbox">
-            <input type="checkbox" id="ctxV501" />
-            <span>V501 <small>(状態異常×1.5)</small></span>
-          </label>
-          <label class="field checkbox">
-            <input type="checkbox" id="ctxV502" />
-            <span>V502 <small>(即死×2)</small></span>
-          </label>
-          <label class="field checkbox">
-            <input type="checkbox" id="ctxSmartlink" />
-            <span>Smartlink <small>(距離ペナルティ無効)</small></span>
-          </label>
-          <label class="field checkbox">
-            <input type="checkbox" id="ctxSnGlitch" />
-            <span>SNグリッチ <small>(1段目↔2段目命中)</small></span>
-          </label>
-        </div>
-      </details>
-
-      <!-- 4. 防具・ユニット -->
+      <!-- 3. 防具・ユニット -->
       <details class="panel collapsible" id="equipDetails">
         <summary>
           <span class="collapsible-title">防具・ユニット</span>
@@ -253,6 +239,18 @@
           <label class="field checkbox">
             <input type="checkbox" id="commanderBlade" />
             <span>Commander Blade <small>(ATA+20)</small></span>
+          </label>
+          <label class="field checkbox">
+            <input type="checkbox" id="ctxV501" />
+            <span>V501 <small>(状態異常×1.5)</small></span>
+          </label>
+          <label class="field checkbox">
+            <input type="checkbox" id="ctxV502" />
+            <span>V502 <small>(即死×2)</small></span>
+          </label>
+          <label class="field checkbox">
+            <input type="checkbox" id="ctxSmartlink" />
+            <span>Smartlink <small>(距離ペナルティ無効)</small></span>
           </label>
           <label class="field">
             <span>追加 ATP</span>

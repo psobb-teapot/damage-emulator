@@ -447,24 +447,14 @@ function chip(text: string): string {
 
 function updateChips(inputData: ComboInput): void {
   const c = inputData.context ?? {};
-  const tuning: string[] = [];
-  if ((c.shiftaLevel ?? 0) > 0) tuning.push(chip(`シフタ${c.shiftaLevel}`));
-  if ((c.zalureLevel ?? 0) > 0) tuning.push(chip(`ザルア${c.zalureLevel}`));
-  if (c.frozen) tuning.push(chip("凍結"));
-  if (c.paralyzed) tuning.push(chip("麻痺"));
-  if (c.v501) tuning.push(chip("V501"));
-  if (c.v502) tuning.push(chip("V502"));
-  if (c.smartlink) tuning.push(chip("Smartlink"));
-  if (c.snGlitch) tuning.push(chip("SNグリッチ"));
-  if ((c.distance ?? 0) > 0) tuning.push(chip(`距離${c.distance}`));
-  if (!c.includeCriticals) tuning.push(chip("クリなし"));
-  $("tuningChips").innerHTML = tuning.join("");
-
   const equip: string[] = [];
   if (select("frame").value !== "None") equip.push(chip(select("frame").value));
   if (select("barrier").value !== "None") equip.push(chip(select("barrier").value));
   if (select("possUnit").value) equip.push(chip(select("possUnit").value));
   if (input("commanderBlade").checked) equip.push(chip("CB"));
+  if (c.v501) equip.push(chip("V501"));
+  if (c.v502) equip.push(chip("V502"));
+  if (c.smartlink) equip.push(chip("Smartlink"));
   if (num("armorAtp") > 0) equip.push(chip(`+${num("armorAtp")}ATP`));
   if (num("armorAta") > 0) equip.push(chip(`+${num("armorAta")}ATA`));
   $("equipChips").innerHTML = equip.join("");

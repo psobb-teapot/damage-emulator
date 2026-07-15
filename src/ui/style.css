@@ -225,6 +225,68 @@ a {
   opacity: 0.35;
 }
 
+.quick-row-single {
+  grid-template-columns: 1fr;
+}
+
+.quick-field input[type="range"] {
+  accent-color: var(--photon);
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+.quick-field output {
+  color: var(--amber);
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.quick-check {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.quick-check small {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.quick-check input[type="checkbox"] {
+  accent-color: var(--photon);
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.quick-check input[type="number"] {
+  font: 600 13px var(--font-display);
+  color: var(--ink);
+  background: rgba(11, 20, 36, 0.85);
+  border: 1px solid var(--panel-edge);
+  padding: 4px 6px;
+  width: 64px;
+}
+
+.combo-options {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+@media (max-width: 720px) {
+  .combo-options {
+    margin-left: 0;
+  }
+}
+
 .badge {
   display: inline-block;
   font-size: 10px;
