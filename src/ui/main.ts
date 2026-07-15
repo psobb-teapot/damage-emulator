@@ -588,12 +588,28 @@ function renderCompare(inputData: ComboInput): void {
 
   const tbody = $("compareRows");
   tbody.innerHTML = "";
+  // 既定 (エリア順) のときはエリア見出し行でグループ化する
+  const grouped = compareSort.col === null;
+  let currentArea = "";
   for (const row of rows) {
+    if (grouped) {
+      const area = `Ep${row.enemy.episode} ${row.enemy.location ?? "?"}`;
+      if (area !== currentArea) {
+        currentArea = area;
+        const groupTr = document.createElement("tr");
+        groupTr.className = "compare-group";
+        groupTr.innerHTML = `<td colspan="7">${area}</td>`;
+        tbody.appendChild(groupTr);
+      }
+    }
     const tr = document.createElement("tr");
     tr.className = "compare-row" + (row.key === select("enPreset").value ? " row-active" : "");
     const killClass = row.kill >= 99.95 ? "kill-hi" : row.kill <= 0.05 ? "kill-lo" : "";
+    const areaBadge = grouped
+      ? ""
+      : ` <span class="badge badge-muted">Ep${row.enemy.episode} ${row.enemy.location ?? ""}</span>`;
     tr.innerHTML = `
-      <td>${row.key} <span class="badge badge-muted">Ep${row.enemy.episode} ${row.enemy.location ?? ""}</span> <span class="badge badge-muted">${row.enemy.enemyType ?? ""}</span></td>
+      <td class="${grouped ? "cell-indent" : ""}">${row.key}${areaBadge} <span class="badge badge-muted">${row.enemy.enemyType ?? ""}</span></td>
       <td class="num">${fmt(row.enemy.hp)}</td>
       <td class="num">${fmt(row.avg)}</td>
       <td class="pct-cell"><span class="pct-bar" style="width:${row.pct}%"></span><span class="pct-text">${row.pct.toFixed(0)}%</span></td>
