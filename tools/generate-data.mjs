@@ -45,7 +45,7 @@ const ANIMATION_TO_KIND = {
   // 固有アニメーションは最も近い種別へ (ヒット数は comboPreset から取得)
   "Master Raven": "handgun",
   "Last Swan": "handgun",
-  "L&K38 Combat": "mechgun",
+  "L&K38 Combat": "shot",
 };
 
 // psostats getSpecialAccuracyModifier で 0.7 になる特殊
