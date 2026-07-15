@@ -615,6 +615,54 @@ function renderClassCompare(inputData: ComboInput): void {
   });
 }
 
+/* ================= 条件バー (敵の状態のミラー・全比較タブ) ================= */
+
+// トグル → 上部カードの実コントロールを操作 (双方向同期)
+for (const btn of document.querySelectorAll<HTMLButtonElement>(".cond-toggle[data-cond]")) {
+  btn.addEventListener("click", () => {
+    const el = input(btn.dataset.cond!);
+    el.checked = !el.checked;
+    el.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+}
+for (const btn of document.querySelectorAll<HTMLButtonElement>(".cond-zalure")) {
+  btn.addEventListener("click", () => {
+    const z = input("zalure");
+    z.value = Number(z.value) > 0 ? "0" : "30";
+    z.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+}
+
+/** 条件バーの表示状態を上部カードと同期する */
+function updateCondBars(): void {
+  for (const btn of document.querySelectorAll<HTMLButtonElement>(".cond-toggle[data-cond]")) {
+    btn.classList.toggle("cond-active", input(btn.dataset.cond!).checked);
+  }
+  const z = num("zalure");
+  for (const btn of document.querySelectorAll<HTMLButtonElement>(".cond-zalure")) {
+    btn.classList.toggle("cond-active", z > 0);
+    btn.querySelector(".z-val")!.textContent = String(z);
+  }
+}
+
+/** 条件変更時にテーブルを一瞬光らせて再計算を知覚させる */
+let lastCondKey = "";
+function flashIfCondChanged(): void {
+  const key = [
+    input("enSolo").checked, num("zalure"),
+    input("ctxFrozen").checked, input("ctxParalyzed").checked,
+  ].join("|");
+  const changed = lastCondKey !== "" && lastCondKey !== key;
+  lastCondKey = key;
+  if (!changed) return;
+  const section = document.querySelector<HTMLElement>(".view-section:not([hidden])");
+  const target = section?.querySelector<HTMLElement>(".compare-scroll") ?? section;
+  if (!target) return;
+  target.classList.remove("cond-flash");
+  void target.offsetWidth; // アニメーション再始動
+  target.classList.add("cond-flash");
+}
+
 /* ================= 複数の敵リスト (「複数の敵」「確定ライン」タブで共有) ================= */
 
 let compareList: string[] = [];
@@ -1126,10 +1174,12 @@ function render(): void {
       fr.frames != null ? `所要フレーム: ${fr.frames}F` : "所要フレーム: データなし";
 
     // タブごとの表示
+    updateCondBars();
     const listCount = syncCompareListState();
     if (activeView === "enemies" && listCount > 0) renderEnemiesView(inputData);
     if (activeView === "line") renderLineView(inputData);
     if (activeView === "classes") renderClassCompare(inputData);
+    flashIfCondChanged();
     syncUrl();
   } catch (e) {
     errorBox.hidden = false;

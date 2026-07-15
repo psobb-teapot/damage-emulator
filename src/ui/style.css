@@ -569,6 +569,74 @@ a {
   font-weight: 700;
 }
 
+/* ---------- 条件バー (敵の状態のミラー) ---------- */
+
+.cond-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  border: 1px solid rgba(255, 184, 77, 0.35);
+  background: rgba(255, 184, 77, 0.04);
+  padding: 8px 10px;
+  margin-bottom: 12px;
+}
+
+.cond-label {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--amber);
+}
+
+.cond-toggle {
+  font-family: var(--font-display);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  background: rgba(11, 20, 36, 0.6);
+  border: 1px solid var(--panel-edge);
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.cond-toggle:hover {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+.cond-toggle:focus-visible {
+  outline: 2px solid var(--photon);
+  outline-offset: 1px;
+}
+
+.cond-toggle.cond-active {
+  color: #06121f;
+  background: var(--amber);
+  border-color: var(--amber);
+  box-shadow: 0 0 10px rgba(255, 184, 77, 0.4);
+}
+
+/* 条件変更時のフラッシュ (再計算の知覚) */
+
+@keyframes cond-flash {
+  0% { box-shadow: inset 0 0 0 2px rgba(255, 184, 77, 0.9); background: rgba(255, 184, 77, 0.08); }
+  100% { box-shadow: inset 0 0 0 2px transparent; background: transparent; }
+}
+
+.cond-flash {
+  animation: cond-flash 0.7s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cond-flash {
+    animation: none;
+  }
+}
+
 /* 単体詳細の統計は全幅なので4列に */
 @media (min-width: 900px) {
   .result-stats {

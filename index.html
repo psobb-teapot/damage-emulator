@@ -340,6 +340,14 @@
     <!-- タブ2: 複数の敵 -->
     <section class="view-section panel" id="view-enemies" hidden>
       <p class="view-desc">同じキャラ・装備・コンボで複数の敵に対する結果を一覧します。行クリックで単体詳細へ。</p>
+      <div class="cond-bar" role="group" aria-label="敵の状態 (全タブ共通・上部カードと連動)">
+        <span class="cond-label">敵の状態:</span>
+        <button type="button" class="cond-toggle" data-cond="enSolo">一人用</button>
+        <button type="button" class="cond-toggle" data-cond="ctxFrozen">凍結</button>
+        <button type="button" class="cond-toggle" data-cond="ctxParalyzed">麻痺</button>
+        <button type="button" class="cond-toggle cond-zalure" title="クリックで 0 ↔ 30 を切替 (細かい調整は上部のスライダー)">ザルア <span class="z-val">0</span></button>
+      </div>
+
       <div class="compare-actions">
         <select class="cmp-picker" aria-label="追加する敵"></select>
         <button type="button" class="cmp-add-picked">+ 追加</button>
@@ -377,6 +385,14 @@
         命中100%に必要な Hit% (コンボ段ごと) と、最小ロール・クリなしで確定撃破できるヒット数を逆算します。
         判定: <span class="hit-ok">✓ 確定</span> / <span class="hit-part">△ ダメージは足りるが想定Hit%では命中不確定</span> / <span class="hit-no">× ダメージ不足</span>
       </p>
+      <div class="cond-bar" role="group" aria-label="敵の状態 (全タブ共通・上部カードと連動)">
+        <span class="cond-label">敵の状態:</span>
+        <button type="button" class="cond-toggle" data-cond="enSolo">一人用</button>
+        <button type="button" class="cond-toggle" data-cond="ctxFrozen">凍結</button>
+        <button type="button" class="cond-toggle" data-cond="ctxParalyzed">麻痺</button>
+        <button type="button" class="cond-toggle cond-zalure" title="クリックで 0 ↔ 30 を切替 (細かい調整は上部のスライダー)">ザルア <span class="z-val">0</span></button>
+      </div>
+
       <div class="line-controls">
         <label class="quick-field line-hit">
           <span>想定 Hit% <output id="lineHitOut">0</output> <small>(武器のHit%とは独立に試せます)</small></span>
@@ -412,6 +428,14 @@
         (Lv200 ステータス基準・装備可否は未判定)。行クリックでそのクラスとコンボを反映します。
         対象の敵は「単体詳細」タブで変更できます。
       </p>
+      <div class="cond-bar" role="group" aria-label="敵の状態 (全タブ共通・上部カードと連動)">
+        <span class="cond-label">敵の状態:</span>
+        <button type="button" class="cond-toggle" data-cond="enSolo">一人用</button>
+        <button type="button" class="cond-toggle" data-cond="ctxFrozen">凍結</button>
+        <button type="button" class="cond-toggle" data-cond="ctxParalyzed">麻痺</button>
+        <button type="button" class="cond-toggle cond-zalure" title="クリックで 0 ↔ 30 を切替 (細かい調整は上部のスライダー)">ザルア <span class="z-val">0</span></button>
+      </div>
+
       <div class="compare-scroll">
         <table class="hit-table compare-table">
           <thead>
