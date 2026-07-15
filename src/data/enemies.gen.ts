@@ -152,7 +152,7 @@ export const ALL_ENEMIES_ONE_PERSON: Record<string, Enemy> = {
   "Tollaw": { name: "Tollaw", hp: 1534, dfp: 525, evp: 465, edk: 70, esp: 20, difficulty: "ultimate", episode: 1, location: "Forest", enemyType: "Native" },
   "Mothvist (Forest)": { name: "Mothvist (Forest)", hp: 1931, dfp: 451, evp: 262, edk: 75, esp: 30, difficulty: "ultimate", episode: 1, location: "Forest", enemyType: "Native" },
   "Mothvert (Forest)": { name: "Mothvert (Forest)", hp: 950, dfp: 451, evp: 316, edk: 70, esp: 30, difficulty: "ultimate", episode: 1, location: "Forest", enemyType: "Native" },
-  "Hildelt (Forest)": { name: "Hildelt (Forest)", hp: 1900, dfp: 525, evp: 321, edk: 98, esp: 50, difficulty: "ultimate", episode: 1, location: "Forest", enemyType: "Native" },
+  "Hildelt (Forest)": { name: "Hildelt (Forest)", hp: 1922, dfp: 525, evp: 321, edk: 98, esp: 50, difficulty: "ultimate", episode: 1, location: "Forest", enemyType: "Native" },
   "Hildetorr (Forest)": { name: "Hildetorr (Forest)", hp: 4500, dfp: 451, evp: 573, edk: 100, esp: 50, difficulty: "ultimate", episode: 1, location: "Forest", enemyType: "Native" },
   "Sil Dragon": { name: "Sil Dragon", hp: 9500, dfp: 451, evp: 262, edk: 1000, esp: 1000, difficulty: "ultimate", episode: 1, location: "Forest", enemyType: "Native", isBoss: true },
   "Vulmer": { name: "Vulmer", hp: 1596, dfp: 574, evp: 492, edk: 80, esp: 15, difficulty: "ultimate", episode: 1, location: "Caves", enemyType: "A.Beast" },
