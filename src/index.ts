@@ -17,6 +17,13 @@ export { comboFrames, frameDataFor, type ComboFramesResult } from "./frames.js";
 export { killProbabilityByHits, killProbabilityWithAccuracy } from "./probability.js";
 export { findBestCombo, type AutoComboResult } from "./autoCombo.js";
 export {
+  buildKillMatrix,
+  guaranteedKillCombo,
+  type GuaranteedComboResult,
+  type KillMatrixCell,
+  type KillMatrixInput,
+} from "./killMatrix.js";
+export {
   FRAME_DATA,
   FEMALE_FRAME_DATA,
   CLASS_SPECIFIC_FRAME_DATA,

@@ -29,6 +29,10 @@ TypeScript モジュールとして提供します。
 - **コンボ所要フレーム数** (男女・クラス固有アニメーション対応の攻撃速度)
 - **オートコンボ** (命中100%優先 → 非撃破なら最大ダメージ / 撃破可能なら最小フレームで自動探索)
 - 全12クラスの Lv200 / 最大ステータスプリセット
+- **確定撃破マトリクス** (`buildKillMatrix`): 装備一覧 × 敵一覧に対し、最小ロール・
+  クリなし・全段命中100%で必ず倒せるコンボと、不足時の要求 Hit% を一括逆算
+  (Rappy Runs 等の外部サイト埋め込み用。`npm run build:bundle` で IIFE 単一ファイル
+  `dist-bundle/pso-damage-emulator.js` を生成、グローバル `PsoDamage` で全 API を公開)
 
 ## 使い方
 
@@ -38,6 +42,7 @@ npm test           # ユニットテスト
 npm run demo       # CLI デモ
 npm run dev        # ブラウザUI (開発サーバー) → http://localhost:5173
 npm run build:web  # ブラウザUIの静的ビルド (dist-web/)
+npm run build:bundle  # 外部サイト埋め込み用 IIFE バンドル (dist-bundle/)
 ```
 
 ### ブラウザUI
@@ -183,6 +188,7 @@ src/
 ├── equipment.ts    # セット効果 / POSS ユニット / Commander Blade
 ├── frames.ts       # コンボ所要フレーム数 (攻撃速度)
 ├── autoCombo.ts    # 最適コンボの自動探索
+├── killMatrix.ts   # 確定撃破マトリクス (装備×敵の確定コンボ逆算)
 ├── ui/             # ブラウザUI (Vite + vanilla TS)
 └── data/
     ├── classes.ts       # 全12クラスの Lv200 / 最大ステータス

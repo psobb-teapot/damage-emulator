@@ -16,6 +16,7 @@
     "demo": "tsx demo/demo.ts",
     "dev": "vite",
     "build:web": "vite build",
+    "build:bundle": "vite build -c vite.lib.config.ts",
     "preview": "vite preview"
   },
   "keywords": [
