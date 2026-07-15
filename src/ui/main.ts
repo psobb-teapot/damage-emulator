@@ -213,10 +213,9 @@ function applyWeaponPreset(): void {
   input("wpAta").value = String(preset.ata);
   input("wpGrind").value = String(preset.grind ?? preset.maxGrind ?? 0);
   input("wpGrind").max = String(preset.maxGrind ?? 250);
-  input("wpAttr").value = String(preset.attributePercent ?? 0);
-  input("wpAttr").max = String(preset.maxAttributePercent ?? 100);
-  input("wpHit").value = String(preset.hitPercent ?? 0);
-  input("wpHit").max = String(preset.maxHitPercent ?? 100);
+  // 属性%/Hit% は武器の最大値をデフォルトにする (psostats 準拠)
+  input("wpAttr").value = String(preset.maxAttributePercent ?? 0);
+  input("wpHit").value = String(preset.maxHitPercent ?? 0);
   input("wpHits").value = "";
   select("wpSpecial").value =
     typeof preset.special === "string" ? preset.special : (preset.special?.name ?? "");
@@ -247,6 +246,19 @@ function applyEnemyPreset(): void {
 }
 
 /* ================= 制約の反映 ================= */
+
+/** 属性%/Hit% クイック入力の上限表示と有効/無効を更新する */
+function updateQuickInputs(): void {
+  const preset = WEAPONS[select("wpPreset").value];
+  const maxAttr = preset ? (preset.maxAttributePercent ?? 0) : 100;
+  const maxHit = preset ? (preset.maxHitPercent ?? 0) : 100;
+  input("wpAttr").max = String(maxAttr);
+  input("wpHit").max = String(maxHit);
+  input("wpAttr").disabled = maxAttr === 0;
+  input("wpHit").disabled = maxHit === 0;
+  $("wpAttrMax").textContent = maxAttr === 0 ? "(付与不可)" : `/ 最大 ${maxAttr}`;
+  $("wpHitMax").textContent = maxHit === 0 ? "(付与不可)" : `/ 最大 ${maxHit}`;
+}
 
 /** 現在の武器の制約 (コンボ不可 / 特殊なし) をコンボビルダーへ反映する */
 function updateConstraints(): void {
@@ -543,6 +555,7 @@ function render(): void {
 
   try {
     updateConstraints();
+    updateQuickInputs();
     const inputData = readInput();
     updateSummaries(inputData);
     updateChips(inputData);
@@ -692,10 +705,11 @@ select("enPreset").addEventListener("change", () => {
   render();
 });
 
-// 武器・敵の個別フィールドを編集したらプリセットを「カスタム」へ
+// 武器の「個体差」を超える編集をしたらプリセットを「カスタム」へ
+// (グラインド・属性%・Hit%・ヒット数は同じ武器の個体調整なのでプリセットを維持)
 const weaponFieldIds = [
-  "wpKind", "wpAtpMin", "wpAtpMax", "wpAta", "wpGrind", "wpAttr", "wpHit",
-  "wpHits", "wpSpecial", "wpEff", "wpHeavyAcc", "wpHeavyDmg",
+  "wpKind", "wpAtpMin", "wpAtpMax", "wpAta",
+  "wpSpecial", "wpEff", "wpHeavyAcc", "wpHeavyDmg",
 ];
 for (const id of weaponFieldIds) {
   $(id).addEventListener("input", () => {

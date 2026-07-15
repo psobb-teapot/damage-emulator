@@ -60,6 +60,16 @@
           <div class="card-title">武器</div>
           <select id="wpPreset" class="card-select" aria-label="武器"></select>
           <div class="card-summary" id="wpSummary"></div>
+          <div class="quick-row">
+            <label class="quick-field">
+              <span>属性 % <small id="wpAttrMax"></small></span>
+              <input type="number" id="wpAttr" min="0" max="100" value="0" />
+            </label>
+            <label class="quick-field">
+              <span>Hit % <small id="wpHitMax"></small></span>
+              <input type="number" id="wpHit" min="0" max="100" value="0" />
+            </label>
+          </div>
           <details class="card-details">
             <summary>詳細設定</summary>
             <div class="field-grid">
@@ -82,14 +92,6 @@
               <label class="field">
                 <span>グラインド</span>
                 <input type="number" id="wpGrind" min="0" />
-              </label>
-              <label class="field">
-                <span>属性 %</span>
-                <input type="number" id="wpAttr" min="0" max="100" value="0" />
-              </label>
-              <label class="field">
-                <span>Hit % <small>(ATA加算)</small></span>
-                <input type="number" id="wpHit" min="0" max="100" value="0" />
               </label>
               <label class="field span2">
                 <span>ヒット数/攻撃</span>
