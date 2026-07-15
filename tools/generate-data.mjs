@@ -122,9 +122,77 @@ const EPISODE_BY_LOCATION = {
 const BOSS_PATTERN =
   /^(Sil Dragon|Dal Ra Lie|Vol Opt ver\. 2|Dark Falz|Barba Ray|Gol Dragon|Gal Gryphon|Olga Flow|Saint-Milion|Shambertin|Kondrieu)/;
 
+// wiki.pioneer2.net/w/Monsters の掲載順 (2026-07-15 取得)。
+// エリアは Forest→Caves→Mines→Ruins→Temple→Spaceship→CCA→Seabed→Tower→
+// Crater→Desert (UI の LOCATION_ORDER と同じ)、エリア内は wiki の表の行順で、
+// レア敵は元になる敵の直後 (wiki の掲載どおり)。
+// 注意: この順序は UI の敵リスト表示順と共有 URL の cmpB ビットマスクの
+// ビット位置を決める。
+const WIKI_ORDER = [
+  // Ep1 Forest
+  "El Rappy (Forest)", "Pal Rappy (Forest)", "Gulgus (Forest)",
+  "Gulgus-Gue (Forest)", "Bartle", "Barble", "Tollaw",
+  "Mothvist (Forest)", "Mothvert (Forest)", "Hildelt (Forest)",
+  "Hildetorr (Forest)", "Sil Dragon",
+  // Ep1 Caves
+  "Vulmer", "Govulmer", "Melqueek", "Ob Lily (Caves)", "Mil Lily (Caves)",
+  "Nano Dragon", "Pan Arms (Caves)", "Hidoom (Caves)", "Migium (Caves)",
+  "Crimson Assassin (Caves)", "Pofuilly Slime", "Pouilly Slime",
+  "Dal Ra Lie", "Dal Ra Lie (Shell)",
+  // Ep1 Mines
+  "Gillchic (Mines)", "Dubchic (Mines)", "Duvuik (Mines)",
+  "Canabin", "Canabin (Ring)", "Canune", "Sinow Blue", "Sinow Red",
+  "Baranz (Mines)", "Vol Opt ver. 2 (Form 1)", "Vol Opt ver. 2 (Form 2)",
+  // Ep1 Ruins
+  "Arlan (Ruins)", "Merlan (Ruins)", "Del-D (Ruins)", "Claw", "Bulclaw",
+  "Delsaber (Ruins)", "Gran Sorcerer (Ruins)", "Indi Belra (Ruins)",
+  "Dark Gunner", "Dark Bringer", "Darvant", "Darvant (Falz)",
+  "Dark Falz (Form 1)", "Dark Falz (Form 2)", "Dark Falz (Form 3)",
+  // Ep2 Temple
+  "El Rappy (Temple)", "Love Rappy (Temple)", "Arlan (Temple)",
+  "Merlan (Temple)", "Del-D (Temple)", "Ob Lily (Temple)",
+  "Mil Lily (Temple)", "Mothvist (Temple)", "Mothvert (Temple)",
+  "Crimson Assassin (Temple)", "Hildelt (Temple)", "Hildetorr (Temple)",
+  "Indi Belra (Temple)", "Barba Ray",
+  // Ep2 Spaceship
+  "Gulgus (Space)", "Gulgus-Gue (Space)", "Pan Arms (Space)",
+  "Hidoom (Space)", "Migium (Space)", "Gillchic (Space)", "Dubchic (Space)",
+  "Duvuik (Space)", "Delsaber (Space)", "Baranz (Space)",
+  "Gran Sorcerer (Space)", "Gol Dragon",
+  // Ep2 CCA
+  "Merillia", "Meriltas", "Gee", "Ul Gibbon", "Zol Gibbon", "Sinow Berill",
+  "Sinow Spigell", "Gi Gue", "Gibbles", "Mericarol", "Merikle", "Mericus",
+  "Gal Gryphon",
+  // Ep2 Seabed
+  "Dolmolm", "Dolmdarl", "Sinow Zoa", "Sinow Zele", "Morfos", "Deldepth",
+  "Recobox", "Recon", "Delbiter", "Olga Flow (Form 1)", "Olga Flow (Form 2)",
+  // Ep2 Tower
+  "Del Lily", "Ill Gill", "Epsilon",
+  // Ep4 Crater
+  "Sand Rappy (Crater)", "Del Rappy (Crater)", "Satellite Lizard (Crater)",
+  "Yowie (Crater)", "Boota", "Ze Boota", "Ba Boota", "Zu (Crater)",
+  "Pazuzu (Crater)", "Astark", "Dorphon", "Dorphon Eclair",
+  // Ep4 Desert
+  "Sand Rappy (Desert)", "Del Rappy (Desert)", "Satellite Lizard (Desert)",
+  "Yowie (Desert)", "Goran", "Pyro Goran", "Goran Detonator", "Merissa A",
+  "Merissa AA", "Zu (Desert)", "Pazuzu (Desert)", "Girtablulu",
+  "Saint-Milion (Phase 1)", "Saint-Milion (Phase 2)",
+  "Shambertin (Phase 1)", "Shambertin (Phase 2)",
+  "Kondrieu (Phase 1)", "Kondrieu (Phase 2)",
+];
+const WIKI_INDEX = new Map(WIKI_ORDER.map((key, i) => [key, i]));
+
 function enemyEntriesOf(dataset) {
+  const sorted = Object.entries(dataset).sort(([a], [b]) => {
+    const ia = WIKI_INDEX.has(a) ? WIKI_INDEX.get(a) : Infinity;
+    const ib = WIKI_INDEX.has(b) ? WIKI_INDEX.get(b) : Infinity;
+    return ia !== ib ? ia - ib : a.localeCompare(b);
+  });
+  for (const [key] of sorted) {
+    if (!WIKI_INDEX.has(key)) console.warn(`WIKI_ORDER に無い敵: ${key}`);
+  }
   const entries = [];
-  for (const [key, e] of Object.entries(dataset)) {
+  for (const [key, e] of sorted) {
     const episode = EPISODE_BY_LOCATION[e.location];
     if (!episode) throw new Error(`未知の location: ${e.location} (${key})`);
     const fields = [
