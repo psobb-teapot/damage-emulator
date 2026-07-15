@@ -114,6 +114,21 @@ describe("guaranteedKillCombo", () => {
     );
   });
 
+  it("SNグリッチ: 意図しない継承で崩れないコンボ (robust) を優先する", () => {
+    // Diska+Thirteen セット・シフタ20 vs Vulmer 相当の状況では、
+    // N-S-S (81f) は N1 が S2 の悪い修正値を継承しうる (robust=false)。
+    // 2f 遅くても安全な S-N-S (robust=true) を選ぶこと。
+    const base = playerFromClass("HUcast", { useMaxStats: true, lck: 100, armorAtp: 104, armorAta: 50 });
+    const weapon = { ...WEAPONS["Diska of Braveman"]!, grind: 9, hitPercent: 50, attributePercent: 90 };
+    const enemy = ENEMIES["Vulmer"]!;
+    const cell = guaranteedKillCombo(base, weapon, enemy, "HUcast", {
+      shiftaLevel: 20, includeCriticals: false, smartlink: true, snGlitch: true,
+    });
+    expect(cell.guaranteed).not.toBeNull();
+    expect(cell.guaranteed!.attacks).toEqual(["special", "normal", "special"]);
+    expect(cell.guaranteed!.robust).toBe(true);
+  });
+
   it("SNグリッチ: プロジェクタイル特殊武器 (Raikiri) は特殊段のみ適用", () => {
     const raikiri = WEAPONS["Raikiri"]!;
     expect(snGlitchEligible(raikiri, "special")).toBe(true);

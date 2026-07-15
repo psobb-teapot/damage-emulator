@@ -35,6 +35,13 @@ export interface GuaranteedComboResult {
    * 0 = Hit% 不要。武器の現在 Hit% とは独立に逆算した値。
    */
   requiredHitPercent: number;
+  /**
+   * SNグリッチの命中率継承はタイミング条件を満たすと自動で起こるため、
+   * 「継承されると命中が下がる段」を持つコンボは入力遅延での抑制が必要。
+   * true = 意図しない継承が起きても全段 100% を維持できる (操作が安全)。
+   * snGlitch 無効時は常に true。
+   */
+  robust: boolean;
 }
 
 export interface KillMatrixCell {
@@ -167,6 +174,25 @@ export function guaranteedKillCombo(
         }
         const requiredHit = reqs.reduce((max, r) => Math.max(max, r), 0);
 
+        // 現在の Hit% で全段 100% か。SNグリッチはグリッチ可能な段のみ
+        // 次段の命中率 (素の値) で置換する
+        const accsRaw = attacks.map((type, i) =>
+          hitChance(player, weapon, enemy, type, (i + 1) as 1 | 2 | 3, context),
+        );
+        const accs = [...accsRaw];
+        // 継承はタイミング条件で自動発生するため、グリッチ可能な段は
+        // 「次段の命中率も 100%」でなければ意図しない継承で確定が崩れうる
+        // (wiki の NSS 長距離の精度低下と同じ)。全段がその心配なしなら robust
+        let robust = true;
+        if (context.snGlitch) {
+          for (let k = 0; k + 1 < attacks.length; k++) {
+            if (snGlitchEligible(weapon, attacks[k]!)) {
+              if (accsRaw[k + 1]! > accs[k]!) accs[k] = accsRaw[k + 1]!;
+              if (accsRaw[k + 1]! < 100 - 1e-9) robust = false;
+            }
+          }
+        }
+
         const { frames } = comboFrames(weapon, className, attacks);
         const result: GuaranteedComboResult = {
           attacks,
@@ -174,23 +200,16 @@ export function guaranteedKillCombo(
           totalMinDamage,
           frames,
           requiredHitPercent: requiredHit,
+          robust,
         };
 
-        // 現在の Hit% で全段 100% か。SNグリッチはグリッチ可能な段のみ
-        // 次段の命中率 (素の値) で置換する
-        const accsRaw = attacks.map((type, i) =>
-          hitChance(player, weapon, enemy, type, (i + 1) as 1 | 2 | 3, context),
-        );
-        const accs = [...accsRaw];
-        if (context.snGlitch) {
-          for (let k = 0; k + 1 < attacks.length; k++) {
-            if (snGlitchEligible(weapon, attacks[k]!) && accsRaw[k + 1]! > accs[k]!) {
-              accs[k] = accsRaw[k + 1]!;
-            }
-          }
-        }
-        if (accs.every((acc) => acc >= 100 - 1e-9) && betterFrames(result, guaranteed)) {
-          guaranteed = result;
+        if (accs.every((acc) => acc >= 100 - 1e-9)) {
+          // robust なコンボを優先し、同格ならフレーム数で選ぶ
+          const better =
+            guaranteed === null ||
+            (result.robust && !guaranteed.robust) ||
+            (result.robust === guaranteed.robust && betterFrames(result, guaranteed));
+          if (better) guaranteed = result;
         }
 
         if (Number.isFinite(requiredHit) && requiredHit <= hitCap) {
