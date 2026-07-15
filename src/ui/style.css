@@ -52,8 +52,36 @@ a {
 /* ---------- ヘッダー ---------- */
 
 .site-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
   padding: 28px clamp(16px, 4vw, 48px) 10px;
   border-bottom: 1px solid rgba(82, 216, 239, 0.18);
+}
+
+#shareBtn {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+  background: rgba(82, 216, 239, 0.06);
+  border: 1px solid var(--panel-edge);
+  padding: 7px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+#shareBtn:hover {
+  border-color: var(--photon);
+  box-shadow: 0 0 10px rgba(82, 216, 239, 0.25);
+}
+
+#shareBtn:focus-visible {
+  outline: 2px solid var(--photon);
+  outline-offset: 2px;
 }
 
 .brand h1 {
@@ -89,10 +117,176 @@ a {
   margin: 0 auto;
 }
 
-.controls {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+.content {
+  display: flex;
+  flex-direction: column;
   gap: 16px;
+  min-width: 0;
+}
+
+/* ---------- シナリオ選択カード ---------- */
+
+.scenario {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+}
+
+.selector-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.card-title {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--photon);
+}
+
+.card-title small {
+  color: var(--muted);
+  letter-spacing: 0.1em;
+}
+
+.card-select {
+  font: 600 15px var(--font-display);
+  color: var(--ink);
+  background: rgba(11, 20, 36, 0.85);
+  border: 1px solid var(--photon);
+  padding: 9px 10px;
+  width: 100%;
+}
+
+.card-select:focus-visible {
+  outline: 2px solid var(--photon);
+  outline-offset: 1px;
+}
+
+.card-summary {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.card-summary b {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 1px 6px;
+  border: 1px solid var(--photon);
+  color: var(--photon);
+  vertical-align: 1px;
+}
+
+.badge-special {
+  border-color: var(--rare);
+  color: var(--rare);
+}
+
+.badge-warn {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+.badge-muted {
+  border-color: var(--muted);
+  color: var(--muted);
+}
+
+/* ---------- 折りたたみ ---------- */
+
+.card-details summary,
+.collapsible summary {
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  user-select: none;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.card-details summary::before,
+.collapsible summary::before {
+  content: "▸";
+  color: var(--photon);
+  font-size: 10px;
+  transition: transform 0.15s;
+}
+
+.card-details[open] summary::before,
+.collapsible[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.card-details summary::-webkit-details-marker,
+.collapsible summary::-webkit-details-marker {
+  display: none;
+}
+
+.card-details[open] summary,
+.collapsible[open] summary {
+  margin-bottom: 12px;
+}
+
+.collapsible summary {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--photon);
+}
+
+.collapsible-title {
+  color: var(--photon);
+}
+
+.chips {
+  display: inline-flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  font-family: var(--font-display);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: none;
+  color: var(--amber);
+  border: 1px solid rgba(255, 184, 77, 0.5);
+  padding: 1px 7px;
+}
+
+.equip-note {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: var(--amber);
+}
+
+.grid3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+@media (max-width: 720px) {
+  .grid3 {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .results {
@@ -135,8 +329,22 @@ fieldset.panel {
   color: var(--photon);
 }
 
-.panel-combo {
-  grid-column: 1 / -1;
+.combo-note {
+  font-size: 12.5px;
+  color: var(--amber);
+  border: 1px dashed rgba(255, 184, 77, 0.5);
+  padding: 6px 10px;
+  margin-bottom: 12px;
+}
+
+.combo-step.step-disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.combo-type.type-disabled span {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
 /* ---------- フォーム ---------- */
@@ -363,6 +571,22 @@ fieldset.panel {
   color: var(--rare);
   padding: 8px 10px;
   font-size: 12.5px;
+}
+
+/* 計算根拠 (実効値) */
+
+.derived {
+  font-size: 11.5px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid rgba(36, 64, 95, 0.6);
+  padding-bottom: 10px;
+}
+
+.derived b {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 600;
 }
 
 /* シグネチャ: 敵HPバー */

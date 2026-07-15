@@ -60,7 +60,12 @@ for (const [key, w] of Object.entries(weapons)) {
   if (!kind) throw new Error(`未知の animation: ${w.animation} (${key})`);
   const specialRaw = w.special || null;
   const special = specialRaw ? (SPECIAL_RENAME[specialRaw] ?? specialRaw) : null;
-  const hits = w.comboPreset?.attack1Hits > 0 ? w.comboPreset.attack1Hits : undefined;
+  // プリセットが SPECIAL 指定 (Dark Flow) の場合、ヒット数は特殊攻撃専用
+  const presetIsSpecial = w.comboPreset?.attack1 === "SPECIAL";
+  const hits =
+    !presetIsSpecial && w.comboPreset?.attack1Hits > 0 ? w.comboPreset.attack1Hits : undefined;
+  const specialHits =
+    presetIsSpecial && w.comboPreset?.attack1Hits > 0 ? w.comboPreset.attack1Hits : undefined;
 
   const fields = [
     `name: ${JSON.stringify(w.name)}`,
@@ -77,6 +82,7 @@ for (const [key, w] of Object.entries(weapons)) {
   if (special) fields.push(`special: ${JSON.stringify(special)}`);
   if (specialRaw === "Hell*") fields.push(`specialEffectiveness: 0.5`);
   if (hits !== undefined) fields.push(`hitsPerAttack: ${hits}`);
+  if (specialHits !== undefined) fields.push(`specialHits: ${specialHits}`);
   if (specialRaw && HEAVY_ACCURACY_SPECIALS.has(specialRaw)) {
     fields.push(`specialUsesHeavyAccuracy: true`);
   }

@@ -42,11 +42,13 @@ describe("生成データ: 武器", () => {
     expect(w.specialUsesHeavyAccuracy).toBe(true);
   });
 
-  it("Dark Flow は 1.7 倍・5 ヒット・Heavy 命中", () => {
+  it("Dark Flow は 1.7 倍・特殊のみ 5 ヒット・Heavy 命中・コンボ不可", () => {
     const w = WEAPONS["Dark Flow"]!;
     expect(attackDamageModifier(w, "special")).toBe(1.7);
-    expect(w.hitsPerAttack).toBe(5);
+    expect(w.specialHits).toBe(5); // 特殊攻撃のみ5連射
+    expect(w.hitsPerAttack).toBeUndefined(); // 通常/強攻撃は剣の単発
     expect(w.specialUsesHeavyAccuracy).toBe(true);
+    expect(w.singleAttackOnly).toBe(true);
   });
 
   it("Asteron Belt (Hell*) は減衰付き Hell", () => {

@@ -7,6 +7,7 @@ import { SPECIALS } from "../data/specials.js";
 import { WEAPONS } from "../data/weapons.js";
 import { equipmentBonus, type PossUnit } from "../equipment.js";
 import { comboFrames } from "../frames.js";
+import { atpRange, effectiveDfp, totalAta } from "../stats.js";
 import { DEFAULT_HITS_PER_ATTACK } from "../constants.js";
 import type {
   AttackType,
@@ -33,17 +34,17 @@ const num = (id: string, fallback = 0): number => {
 const WEAPON_KIND_LABELS: Record<WeaponKind, string> = {
   saber: "セイバー",
   sword: "ソード",
-  dagger: "ダガー (2ヒット)",
+  dagger: "ダガー",
   partisan: "パルチザン",
   slicer: "スライサー",
   katana: "カタナ",
-  twinSword: "ツインソード (2ヒット)",
-  doubleSaber: "ダブルセイバー (2ヒット)",
+  twinSword: "ツインソード",
+  doubleSaber: "ダブルセイバー",
   claw: "クロー",
-  fist: "ナックル (2ヒット)",
+  fist: "ナックル",
   handgun: "ハンドガン",
   rifle: "ライフル",
-  mechgun: "マシンガン (3ヒット)",
+  mechgun: "マシンガン",
   shot: "ショット",
   launcher: "ランチャー",
   card: "カード",
@@ -52,36 +53,20 @@ const WEAPON_KIND_LABELS: Record<WeaponKind, string> = {
   wand: "ワンド",
 };
 
-const ATTACK_LABELS: Record<AttackType, string> = {
-  normal: "N",
-  hard: "H",
-  special: "S",
-};
+const ATTACK_LABELS: Record<AttackType, string> = { normal: "N", hard: "H", special: "S" };
 
 /** カスタム武器用: 武器種 → 代表アニメーション名 (フレーム計算に使用) */
 const KIND_TO_ANIMATION: Record<WeaponKind, string> = {
-  saber: "Saber",
-  sword: "Sword",
-  dagger: "Dagger",
-  partisan: "Partisan",
-  slicer: "Slicer",
-  katana: "Katana",
-  twinSword: "Twin Sword",
-  doubleSaber: "Double Saber",
-  claw: "Claw",
-  fist: "Fist",
-  handgun: "Handgun",
-  rifle: "Rifle",
-  mechgun: "Mechgun",
-  shot: "Shot",
-  launcher: "Launcher",
-  card: "Card",
-  cane: "Cane",
-  rod: "Rod",
-  wand: "Wand",
+  saber: "Saber", sword: "Sword", dagger: "Dagger", partisan: "Partisan",
+  slicer: "Slicer", katana: "Katana", twinSword: "Twin Sword",
+  doubleSaber: "Double Saber", claw: "Claw", fist: "Fist", handgun: "Handgun",
+  rifle: "Rifle", mechgun: "Mechgun", shot: "Shot", launcher: "Launcher",
+  card: "Card", cane: "Cane", rod: "Rod", wand: "Wand",
 };
 
-/* ---------- セレクトの初期化 ---------- */
+const fmt = (v: number): string => v.toLocaleString("ja-JP", { maximumFractionDigits: 0 });
+
+/* ================= セレクトの初期化 ================= */
 
 function fillSelect(el: HTMLSelectElement, entries: [string, string][]): void {
   el.innerHTML = "";
@@ -93,7 +78,6 @@ function fillSelect(el: HTMLSelectElement, entries: [string, string][]): void {
   }
 }
 
-/** optgroup 付きセレクト。groups: グループ名 → [value, label][] */
 function fillGroupedSelect(
   el: HTMLSelectElement,
   head: [string, string][],
@@ -122,18 +106,17 @@ function fillGroupedSelect(
 fillSelect(select("cls"), Object.keys(CLASSES).map((k) => [k, k]));
 select("cls").value = "HUcast";
 
-// 武器: 種別ごとにグループ化
 {
   const groups = new Map<string, [string, string][]>();
   for (const kind of Object.keys(WEAPON_KIND_LABELS) as WeaponKind[]) {
-    groups.set(WEAPON_KIND_LABELS[kind].replace(/ \(.*\)$/, ""), []);
+    groups.set(WEAPON_KIND_LABELS[kind], []);
   }
   for (const [key, w] of Object.entries(WEAPONS)) {
-    const label = WEAPON_KIND_LABELS[w.kind].replace(/ \(.*\)$/, "");
-    groups.get(label)!.push([key, `${key}${w.special ? ` [${typeof w.special === "string" ? w.special : w.special.name}]` : ""}`]);
+    const sp = w.special ? ` [${typeof w.special === "string" ? w.special : w.special.name}]` : "";
+    groups.get(WEAPON_KIND_LABELS[w.kind])!.push([key, `${key}${sp}`]);
   }
   for (const [k, v] of groups) if (v.length === 0) groups.delete(k);
-  fillGroupedSelect(select("wpPreset"), [["custom", "カスタム"]], groups);
+  fillGroupedSelect(select("wpPreset"), [["custom", "カスタム武器"]], groups);
 }
 
 fillSelect(
@@ -146,7 +129,6 @@ fillSelect(select("wpSpecial"), [
   ...Object.keys(SPECIALS).map((k): [string, string] => [k, k]),
 ]);
 
-// 敵: エピソード+エリアごとにグループ化
 {
   const groups = new Map<string, [string, string][]>();
   for (const [key, e] of Object.entries(ENEMIES)) {
@@ -154,7 +136,7 @@ fillSelect(select("wpSpecial"), [
     if (!groups.has(label)) groups.set(label, []);
     groups.get(label)!.push([key, key]);
   }
-  fillGroupedSelect(select("enPreset"), [["custom", "カスタム"]], groups);
+  fillGroupedSelect(select("enPreset"), [["custom", "カスタム敵"]], groups);
 }
 
 const noneFirst = (keys: string[]) => ["None", ...keys.filter((k) => k !== "None").sort()];
@@ -168,7 +150,7 @@ fillSelect(select("possUnit"), [
   ["POSS4", "POSS x4 (+120)"],
 ]);
 
-/* ---------- コンボビルダー ---------- */
+/* ================= コンボビルダー ================= */
 
 const comboSteps = $("comboSteps");
 const STEP_DEFAULTS: (AttackType | "none")[] = ["hard", "hard", "special"];
@@ -176,6 +158,7 @@ const STEP_DEFAULTS: (AttackType | "none")[] = ["hard", "hard", "special"];
 for (let step = 1; step <= 3; step++) {
   const div = document.createElement("div");
   div.className = "combo-step";
+  div.id = `comboStep${step}`;
   const types: (AttackType | "none")[] =
     step === 1 ? ["normal", "hard", "special"] : ["none", "normal", "hard", "special"];
   div.innerHTML = `
@@ -201,7 +184,17 @@ for (let step = 1; step <= 3; step++) {
   comboSteps.appendChild(div);
 }
 
-/* ---------- プリセット反映 ---------- */
+function comboRadio(step: number, value: string): HTMLInputElement | null {
+  return document.querySelector<HTMLInputElement>(`input[name="combo${step}"][value="${value}"]`);
+}
+
+function checkedCombo(step: number): string {
+  return (
+    document.querySelector<HTMLInputElement>(`input[name="combo${step}"]:checked`)?.value ?? "none"
+  );
+}
+
+/* ================= プリセット反映 ================= */
 
 function applyClassPreset(): void {
   const cls = CLASSES[select("cls").value];
@@ -218,19 +211,26 @@ function applyWeaponPreset(): void {
   input("wpAtpMin").value = String(preset.atpMin);
   input("wpAtpMax").value = String(preset.atpMax);
   input("wpAta").value = String(preset.ata);
-  // グラインドは上限値をデフォルトに (最大強化前提)
   input("wpGrind").value = String(preset.grind ?? preset.maxGrind ?? 0);
   input("wpGrind").max = String(preset.maxGrind ?? 250);
   input("wpAttr").value = String(preset.attributePercent ?? 0);
   input("wpAttr").max = String(preset.maxAttributePercent ?? 100);
   input("wpHit").value = String(preset.hitPercent ?? 0);
   input("wpHit").max = String(preset.maxHitPercent ?? 100);
-  input("wpHits").value = preset.hitsPerAttack != null ? String(preset.hitsPerAttack) : "";
+  input("wpHits").value = "";
   select("wpSpecial").value =
     typeof preset.special === "string" ? preset.special : (preset.special?.name ?? "");
   select("wpEff").value = String(preset.specialEffectiveness ?? 1);
   input("wpHeavyAcc").checked = preset.specialUsesHeavyAccuracy ?? false;
   input("wpHeavyDmg").checked = preset.specialUsesHeavyDamage ?? false;
+
+  // コンボ不可武器: 特殊があれば S 単発、なければ H 単発をプリセット
+  if (preset.singleAttackOnly) {
+    const first = preset.special ? "special" : "hard";
+    comboRadio(1, first)!.checked = true;
+    comboRadio(2, "none")!.checked = true;
+    comboRadio(3, "none")!.checked = true;
+  }
 }
 
 function applyEnemyPreset(): void {
@@ -246,14 +246,53 @@ function applyEnemyPreset(): void {
   input("enBoss").checked = preset.isBoss ?? false;
 }
 
-/* ---------- 入力の収集 ---------- */
+/* ================= 制約の反映 ================= */
+
+/** 現在の武器の制約 (コンボ不可 / 特殊なし) をコンボビルダーへ反映する */
+function updateConstraints(): void {
+  const preset = WEAPONS[select("wpPreset").value];
+  const kindMatches = preset && preset.kind === select("wpKind").value;
+  const single = !!(kindMatches && preset.singleAttackOnly);
+  const hasSpecial = select("wpSpecial").value !== "";
+
+  const note = $("comboNote");
+  if (single) {
+    note.hidden = false;
+    note.textContent = `${preset!.name} はコンボ攻撃ができません (1段のみ)`;
+  } else {
+    note.hidden = true;
+  }
+
+  for (let step = 1; step <= 3; step++) {
+    const stepEl = $(`comboStep${step}`);
+    const disableStep = single && step > 1;
+    stepEl.classList.toggle("step-disabled", disableStep);
+    for (const radio of stepEl.querySelectorAll<HTMLInputElement>("input[type=radio]")) {
+      const isSpecial = radio.value === "special";
+      radio.disabled = disableStep || (isSpecial && !hasSpecial);
+      radio.parentElement!.classList.toggle(
+        "type-disabled",
+        isSpecial && !hasSpecial && !disableStep,
+      );
+      radio.parentElement!.title =
+        isSpecial && !hasSpecial ? "この武器に特殊攻撃はありません" : "";
+    }
+    if (disableStep) comboRadio(step, "none")!.checked = true;
+    // 特殊なし武器で S が選択されていたら H へ退避
+    if (!hasSpecial && checkedCombo(step) === "special") {
+      comboRadio(step, "hard")!.checked = true;
+    }
+    input(`hits${step}`).disabled = disableStep;
+  }
+}
+
+/* ================= 入力の収集 ================= */
 
 function readCombo(): ComboAttack[] {
   const attacks: ComboAttack[] = [];
   for (let step = 1; step <= 3; step++) {
-    const checked = document.querySelector<HTMLInputElement>(`input[name="combo${step}"]:checked`);
-    const type = checked?.value ?? "none";
-    if (type === "none") break; // 「なし」以降は打ち切り
+    const type = checkedCombo(step);
+    if (type === "none") break;
     const hitsRaw = input(`hits${step}`).value;
     attacks.push({
       type: type as AttackType,
@@ -263,18 +302,23 @@ function readCombo(): ComboAttack[] {
   return attacks;
 }
 
-function readInput(): ComboInput {
-  const cls = CLASSES[select("cls").value];
+function readWeapon(): Weapon {
   const specialKey = select("wpSpecial").value;
   const kind = select("wpKind").value as WeaponKind;
-  // プリセット武器はアニメーション・射程・単発制限を引き継ぐ
   const preset = WEAPONS[select("wpPreset").value];
-  const weapon: Weapon = {
+  const kindMatches = preset && preset.kind === kind;
+  return {
     name: preset ? preset.name : "カスタム武器",
     kind,
-    animation: preset?.kind === kind ? preset.animation : KIND_TO_ANIMATION[kind],
-    horizontalDistance: preset?.kind === kind ? preset.horizontalDistance : 0,
-    singleAttackOnly: preset?.kind === kind ? preset.singleAttackOnly : undefined,
+    animation: kindMatches ? preset.animation : KIND_TO_ANIMATION[kind],
+    horizontalDistance: kindMatches ? preset.horizontalDistance : 0,
+    singleAttackOnly: kindMatches ? preset.singleAttackOnly : undefined,
+    specialHits: kindMatches ? preset.specialHits : undefined,
+    hitsPerAttack: input("wpHits").value
+      ? num("wpHits", 1)
+      : kindMatches
+        ? preset.hitsPerAttack
+        : undefined,
     atpMin: num("wpAtpMin"),
     atpMax: Math.max(num("wpAtpMin"), num("wpAtpMax")),
     ata: num("wpAta"),
@@ -282,15 +326,17 @@ function readInput(): ComboInput {
     hitPercent: num("wpHit"),
     attributePercent: num("wpAttr"),
     special: specialKey || null,
-    hitsPerAttack: input("wpHits").value ? num("wpHits", 1) : undefined,
     specialUsesHeavyAccuracy: input("wpHeavyAcc").checked,
     specialUsesHeavyDamage: input("wpHeavyDmg").checked,
     specialEffectiveness: Number(select("wpEff").value),
   };
+}
 
+function readInput(): ComboInput {
+  const cls = CLASSES[select("cls").value];
+  const weapon = readWeapon();
   const frame = FRAMES[select("frame").value] ?? { atp: 0, ata: 0 };
   const barrier = BARRIERS[select("barrier").value] ?? { atp: 0, ata: 0 };
-  // セット効果 (特定の武器+防具の組み合わせ) + POSS + Commander Blade
   const setBonus = equipmentBonus({
     weapon,
     frameName: select("frame").value,
@@ -321,6 +367,7 @@ function readInput(): ComboInput {
       esp: num("enEsp"),
       isMachine: input("enMachine").checked,
       isBoss: input("enBoss").checked,
+      ccaMiniboss: ENEMIES[select("enPreset").value]?.ccaMiniboss,
       difficulty: select("enDifficulty").value as Difficulty,
     },
     attacks: readCombo(),
@@ -339,31 +386,203 @@ function readInput(): ComboInput {
   };
 }
 
-/* ---------- 結果の描画 ---------- */
+/* ================= 要約・チップ表示 ================= */
 
-const fmt = (v: number): string => v.toLocaleString("ja-JP", { maximumFractionDigits: 0 });
+function updateSummaries(inputData: ComboInput): void {
+  const cls = CLASSES[select("cls").value];
+  $("charSummary").innerHTML = [
+    `ATP <b>${fmt(num("baseAtp"))}</b>`,
+    `ATA <b>${num("baseAta")}</b>`,
+    `LCK <b>${num("lck")}</b>`,
+    cls?.isAndroid ? `<span class="badge">アンドロイド</span>` : "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
+  const w = inputData.weapon;
+  const grind = w.grind ?? 0;
+  const specialName = typeof w.special === "string" ? w.special : w.special?.name;
+  $("wpSummary").innerHTML = [
+    WEAPON_KIND_LABELS[w.kind],
+    `ATP <b>${w.atpMin}–${w.atpMax}</b>${grind > 0 ? ` <small>+${grind * 2}</small>` : ""}`,
+    `ATA <b>${w.ata}</b>`,
+    specialName
+      ? `<span class="badge badge-special">${specialName}</span>`
+      : `<span class="badge badge-muted">特殊なし</span>`,
+    w.singleAttackOnly ? `<span class="badge badge-warn">コンボ不可</span>` : "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
+  const e = inputData.enemy;
+  const preset = ENEMIES[select("enPreset").value];
+  $("enSummary").innerHTML = [
+    `HP <b>${fmt(e.hp)}</b>`,
+    `DFP <b>${fmt(e.dfp)}</b>`,
+    `EVP <b>${fmt(e.evp)}</b>`,
+    `EDK/ESP <b>${e.edk}/${e.esp}</b>`,
+    preset?.enemyType ? `<span class="badge badge-muted">${preset.enemyType}</span>` : "",
+    e.isBoss ? `<span class="badge badge-warn">ボス</span>` : "",
+    preset?.ccaMiniboss ? `<span class="badge badge-warn">属性%無効</span>` : "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
+
+function chip(text: string): string {
+  return `<span class="chip">${text}</span>`;
+}
+
+function updateChips(inputData: ComboInput): void {
+  const c = inputData.context ?? {};
+  const tuning: string[] = [];
+  if ((c.shiftaLevel ?? 0) > 0) tuning.push(chip(`シフタ${c.shiftaLevel}`));
+  if ((c.zalureLevel ?? 0) > 0) tuning.push(chip(`ザルア${c.zalureLevel}`));
+  if (c.frozen) tuning.push(chip("凍結"));
+  if (c.paralyzed) tuning.push(chip("麻痺"));
+  if (c.v501) tuning.push(chip("V501"));
+  if (c.v502) tuning.push(chip("V502"));
+  if (c.smartlink) tuning.push(chip("Smartlink"));
+  if (c.snGlitch) tuning.push(chip("SNグリッチ"));
+  if ((c.distance ?? 0) > 0) tuning.push(chip(`距離${c.distance}`));
+  if (!c.includeCriticals) tuning.push(chip("クリなし"));
+  $("tuningChips").innerHTML = tuning.join("");
+
+  const equip: string[] = [];
+  if (select("frame").value !== "None") equip.push(chip(select("frame").value));
+  if (select("barrier").value !== "None") equip.push(chip(select("barrier").value));
+  if (select("possUnit").value) equip.push(chip(select("possUnit").value));
+  if (input("commanderBlade").checked) equip.push(chip("CB"));
+  if (num("armorAtp") > 0) equip.push(chip(`+${num("armorAtp")}ATP`));
+  if (num("armorAta") > 0) equip.push(chip(`+${num("armorAta")}ATA`));
+  $("equipChips").innerHTML = equip.join("");
+
+  // セット効果の表示
+  const bonus = equipmentBonus({
+    weapon: inputData.weapon,
+    frameName: select("frame").value,
+    barrierName: select("barrier").value,
+    possUnit: (select("possUnit").value || null) as PossUnit | null,
+    commanderBlade: input("commanderBlade").checked,
+  });
+  const note = $("setEffectNote");
+  if (bonus.atp > 0 || bonus.ata > 0) {
+    note.hidden = false;
+    note.textContent = `セット効果発動中: ATP +${fmt(bonus.atp)} / ATA +${bonus.ata}`;
+  } else {
+    note.hidden = true;
+  }
+}
+
+/* ================= URL 共有 ================= */
+
+const STATE_FIELDS = [
+  "cls", "useMax", "lck", "baseAtp", "baseAta",
+  "wpPreset", "wpKind", "wpAtpMin", "wpAtpMax", "wpAta", "wpGrind", "wpAttr", "wpHit",
+  "wpHits", "wpSpecial", "wpEff", "wpHeavyAcc", "wpHeavyDmg",
+  "enPreset", "enHp", "enDfp", "enEvp", "enEdk", "enEsp", "enDifficulty", "enMachine", "enBoss",
+  "shifta", "zalure", "ctxDistance", "ctxFrozen", "ctxParalyzed", "ctxCrits",
+  "ctxV501", "ctxV502", "ctxSmartlink", "ctxSnGlitch",
+  "frame", "barrier", "possUnit", "commanderBlade", "armorAtp", "armorAta",
+  "hits1", "hits2", "hits3",
+] as const;
+
+function serializeState(): string {
+  const state: Record<string, string> = {};
+  for (const id of STATE_FIELDS) {
+    const el = document.getElementById(id) as HTMLInputElement | HTMLSelectElement;
+    state[id] = el.type === "checkbox" ? ((el as HTMLInputElement).checked ? "1" : "0") : el.value;
+  }
+  for (let s = 1; s <= 3; s++) state[`combo${s}`] = checkedCombo(s);
+  return btoa(unescape(encodeURIComponent(JSON.stringify(state))));
+}
+
+function restoreState(encoded: string): boolean {
+  try {
+    const state = JSON.parse(decodeURIComponent(escape(atob(encoded)))) as Record<string, string>;
+    for (const id of STATE_FIELDS) {
+      if (!(id in state)) continue;
+      const el = document.getElementById(id) as HTMLInputElement | HTMLSelectElement;
+      if (el.type === "checkbox") (el as HTMLInputElement).checked = state[id] === "1";
+      else el.value = state[id]!;
+    }
+    for (let s = 1; s <= 3; s++) {
+      const radio = comboRadio(s, state[`combo${s}`] ?? "none");
+      if (radio) radio.checked = true;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function syncUrl(): void {
+  const url = new URL(location.href);
+  url.searchParams.set("s", serializeState());
+  history.replaceState(null, "", url);
+}
+
+$("shareBtn").addEventListener("click", async () => {
+  syncUrl();
+  try {
+    await navigator.clipboard.writeText(location.href);
+    const btn = $("shareBtn");
+    const original = btn.textContent;
+    btn.textContent = "コピーしました";
+    setTimeout(() => (btn.textContent = original), 1500);
+  } catch {
+    /* clipboard 不許可時は URL バーからコピー可能 */
+  }
+});
+
+/* ================= 結果の描画 ================= */
 
 function render(): void {
   const errorBox = $("resultError");
   errorBox.hidden = true;
 
-  let inputData: ComboInput;
   try {
-    inputData = readInput();
+    updateConstraints();
+    const inputData = readInput();
+    updateSummaries(inputData);
+    updateChips(inputData);
+
+    // ヒット数プレースホルダ (攻撃タイプごとの自動値)
+    for (let s = 1; s <= 3; s++) {
+      const type = checkedCombo(s);
+      if (type === "none") {
+        input(`hits${s}`).placeholder = "自動";
+        continue;
+      }
+      const w = inputData.weapon;
+      const auto =
+        type === "special"
+          ? (w.specialHits ?? w.hitsPerAttack ?? DEFAULT_HITS_PER_ATTACK[w.kind])
+          : (w.hitsPerAttack ?? DEFAULT_HITS_PER_ATTACK[w.kind]);
+      input(`hits${s}`).placeholder = `自動 (${auto})`;
+    }
+
     if (inputData.attacks.length === 0) {
       throw new Error("コンボを 1 段以上指定してください。");
     }
     const result = simulateCombo(inputData);
     const enemyHp = inputData.enemy.hp;
 
-    // --- HPバー: 各ヒットの平均ダメージを積み上げ、不透明度=命中率 ---
+    // 計算根拠 (実効値)
+    const range = atpRange(inputData.player, inputData.weapon, inputData.context);
+    const dfpEff = effectiveDfp(inputData.enemy, inputData.context);
+    $("derivedStats").innerHTML =
+      `ATA合計 <b>${totalAta(inputData.player, inputData.weapon)}</b> · ` +
+      `実効ATP <b>${fmt(range.min)}–${fmt(range.max)}</b> · ` +
+      `実効DFP <b>${fmt(dfpEff)}</b>`;
+
+    // HPバー
     const bar = $("hpbar");
     bar.innerHTML = "";
     let consumed = 0;
     for (const hit of result.hits) {
       if (consumed >= enemyHp) break;
       const isHpCut = hit.special?.category === "hpCut";
-      // Demon's は「残りの期待削り」を近似表示
       const dmg = isHpCut
         ? (enemyHp - consumed) *
           (hit.special?.hpCutFraction ?? 0) *
@@ -386,7 +605,7 @@ function render(): void {
     $("hpbarValue").textContent =
       consumed >= enemyHp ? "撃破圏内 (平均ダメージ)" : `平均で残り ${fmt(enemyHp - consumed)}`;
 
-    // --- 統計 ---
+    // 統計
     const killPct = result.killProbability * 100;
     $("statKill").textContent = `${killPct.toFixed(killPct > 99 && killPct < 100 ? 2 : 1)}%`;
     $("statKill").parentElement!.classList.toggle("kill-sure", killPct >= 99.95);
@@ -394,22 +613,19 @@ function render(): void {
     $("statAvg").textContent = fmt(result.totals.avg);
     $("statRemain").textContent = fmt(result.expectedRemainingHp);
 
-    // --- ヒットテーブル ---
+    // ヒットテーブル
     const rows = $("hitRows");
     rows.innerHTML = "";
     for (const hit of result.hits) {
       const tr = document.createElement("tr");
-      const label = ATTACK_LABELS[hit.attackType];
-      const multi = (inputData.attacks[hit.comboStep - 1]?.hits ??
-        inputData.weapon.hitsPerAttack ??
-        DEFAULT_HITS_PER_ATTACK[inputData.weapon.kind]) > 1;
+      const sameStepHits = result.hits.filter((h) => h.comboStep === hit.comboStep).length;
       const accText =
         hit.accuracyAtMaxRange != null && hit.accuracyAtMaxRange !== hit.accuracy
           ? `${hit.accuracyAtMaxRange.toFixed(1)}–${hit.accuracy.toFixed(1)}%`
           : `${hit.accuracy.toFixed(1)}%`;
       tr.innerHTML = `
-        <td class="num">${hit.comboStep}${multi ? `-${hit.hitIndex}` : ""}</td>
-        <td class="num t-${hit.attackType}">${label}</td>
+        <td class="num">${hit.comboStep}${sameStepHits > 1 ? `-${hit.hitIndex}` : ""}</td>
+        <td class="num t-${hit.attackType}">${ATTACK_LABELS[hit.attackType]}</td>
         <td class="num" title="最遠距離–密着時の命中率">${accText}</td>
         <td><span class="num dmg-avg">${fmt(hit.damage.avg)}</span>
             <span class="dmg-range">${fmt(hit.damage.min)}–${fmt(hit.damage.max)}</span></td>
@@ -418,7 +634,7 @@ function render(): void {
       rows.appendChild(tr);
     }
 
-    // --- 特殊・コスト ---
+    // 特殊・コスト
     const notes = $("specialNotes");
     notes.innerHTML = "";
     const specials = new Map<string, (typeof result.hits)[number]["special"]>();
@@ -441,7 +657,7 @@ function render(): void {
       cost.hidden = true;
     }
 
-    // コンボの所要フレーム数
+    // 所要フレーム
     const fr = comboFrames(
       inputData.weapon,
       select("cls").value,
@@ -449,13 +665,15 @@ function render(): void {
     );
     $("comboFramesOut").textContent =
       fr.frames != null ? `所要フレーム: ${fr.frames}F` : "所要フレーム: データなし";
+
+    syncUrl();
   } catch (e) {
     errorBox.hidden = false;
     errorBox.textContent = e instanceof Error ? e.message : String(e);
   }
 }
 
-/* ---------- イベント配線 ---------- */
+/* ================= イベント配線 ================= */
 
 select("cls").addEventListener("change", () => {
   applyClassPreset();
@@ -491,7 +709,7 @@ for (const id of enemyFieldIds) {
   });
 }
 
-// オートコンボ: psostats と同じ規則で最適コンボを探索して反映
+// オートコンボ
 $("autoComboBtn").addEventListener("click", () => {
   try {
     const inputData = readInput();
@@ -505,15 +723,13 @@ $("autoComboBtn").addEventListener("click", () => {
     if (!best) return;
     for (let step = 1; step <= 3; step++) {
       const type = best.attacks[step - 1] ?? "none";
-      const radio = document.querySelector<HTMLInputElement>(
-        `input[name="combo${step}"][value="${type}"]`,
-      );
-      if (radio) radio.checked = true;
+      const radio = comboRadio(step, type);
+      if (radio && !radio.disabled) radio.checked = true;
       input(`hits${step}`).value = "";
     }
     render();
   } catch {
-    /* 入力不備時は何もしない (エラーは render 側で表示済み) */
+    /* 入力不備時は render 側でエラー表示済み */
   }
 });
 
@@ -527,11 +743,17 @@ input("zalure").addEventListener("input", () => {
 document.querySelector("main")!.addEventListener("input", render);
 document.querySelector("main")!.addEventListener("change", render);
 
-/* ---------- 初期状態 ---------- */
+/* ================= 初期状態 ================= */
 
-applyClassPreset();
-select("wpPreset").value = "Excalibur";
-applyWeaponPreset();
-select("enPreset").value = "Bartle";
-applyEnemyPreset();
+const params = new URLSearchParams(location.search);
+const restored = params.has("s") && restoreState(params.get("s")!);
+if (!restored) {
+  applyClassPreset();
+  select("wpPreset").value = "Excalibur";
+  applyWeaponPreset();
+  select("enPreset").value = "Bartle";
+  applyEnemyPreset();
+}
+$("shiftaOut").textContent = input("shifta").value;
+$("zalureOut").textContent = input("zalure").value;
 render();

@@ -93,6 +93,8 @@ export interface Weapon {
   special?: string | SpecialDefinition | null;
   /** 1回の攻撃入力あたりのヒット数 (未指定なら武器種のデフォルト) */
   hitsPerAttack?: number;
+  /** 特殊攻撃時のみ異なるヒット数 (例: Dark Flow の5連射) */
+  specialHits?: number;
   /**
    * 特殊攻撃が Heavy 相当の命中率を持つ例外武器
    * (Dark Flow, Vjaya, Dark Meteor, Frozen Shooter, Snow Queen)

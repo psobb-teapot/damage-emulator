@@ -98,7 +98,10 @@ export function findBestCombo(
   context: CombatContext = {},
   options: { useMaxRoll?: boolean } = {},
 ): AutoComboResult | null {
-  const defaultHits = weapon.hitsPerAttack ?? DEFAULT_HITS_PER_ATTACK[weapon.kind];
+  const hitsFor = (type: AttackType): number =>
+    type === "special"
+      ? (weapon.specialHits ?? weapon.hitsPerAttack ?? DEFAULT_HITS_PER_ATTACK[weapon.kind])
+      : (weapon.hitsPerAttack ?? DEFAULT_HITS_PER_ATTACK[weapon.kind]);
   const canSpecial = weapon.special != null;
 
   let best: AutoComboResult | null = null;
@@ -114,7 +117,7 @@ export function findBestCombo(
         if (!canSpecial && (a1 === "special" || a2 === "special" || a3 === "special")) continue;
 
         const attacks = [a1, a2, a3].filter((a): a is AttackType => a !== null);
-        const hitsPerStep = attacks.map(() => defaultHits);
+        const hitsPerStep = attacks.map(hitsFor);
 
         const acc = overallAccuracy(player, weapon, enemy, attacks, hitsPerStep, context);
         if (acc < 100 && best !== null) continue;

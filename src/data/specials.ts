@@ -93,7 +93,7 @@ export const SPECIALS: Record<string, SpecialDefinition> = {
     name: "Dark Flow",
     category: "unique",
     damageModifier: 1.7,
-    costPerSwing: "残りHPが最大の一定割合以下のときのみ使用可 (5 ヒット)",
+    costPerSwing: "HPが最大値の12.5%未満のときのみ5連射 (通常時は近接攻撃)",
   },
   TJS: {
     name: "TJS",

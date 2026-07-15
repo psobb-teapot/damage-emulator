@@ -35,7 +35,10 @@ export function simulateCombo(input: ComboInput): ComboResult {
 
   const includeCrits = context.includeCriticals ?? true;
   const critChance = includeCrits ? criticalChance(player.lck) : 0;
-  const defaultHits = weapon.hitsPerAttack ?? DEFAULT_HITS_PER_ATTACK[weapon.kind];
+  const defaultHits = (type: import("./types.js").AttackType): number =>
+    type === "special"
+      ? (weapon.specialHits ?? weapon.hitsPerAttack ?? DEFAULT_HITS_PER_ATTACK[weapon.kind])
+      : (weapon.hitsPerAttack ?? DEFAULT_HITS_PER_ATTACK[weapon.kind]);
 
   const hits: HitResult[] = [];
   const costs: string[] = [];
@@ -56,7 +59,7 @@ export function simulateCombo(input: ComboInput): ComboResult {
   for (let step = 0; step < attacks.length; step++) {
     const attack = attacks[step]!;
     const comboStep = (step + 1) as 1 | 2 | 3;
-    const nHits = attack.hits ?? defaultHits;
+    const nHits = attack.hits ?? defaultHits(attack.type);
 
     const acc = stepAccs[step]!;
     const accAtMaxRange = showRange

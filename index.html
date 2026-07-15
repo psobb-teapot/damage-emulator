@@ -22,34 +22,220 @@
       <h1><span class="brand-photon">COMBO</span> CALCULATOR</h1>
       <p class="tagline">PSOBB ダメージ計算機 · 計算式は wiki.pioneer2.net 準拠</p>
     </div>
+    <button type="button" id="shareBtn" title="現在の設定をURLとしてコピー">設定を共有</button>
   </header>
 
   <main class="layout">
-    <div class="controls">
-      <!-- キャラクター -->
-      <fieldset class="panel" id="panel-character">
-        <legend>キャラクター</legend>
-        <div class="field-grid">
-          <label class="field span2">
-            <span>クラス</span>
-            <select id="cls"></select>
-          </label>
-          <label class="field checkbox span2">
-            <input type="checkbox" id="useMax" checked />
-            <span>最大ステータス (マテリアル込み) を使う</span>
+    <div class="content">
+      <!-- 1. シナリオ選択: クラス / 武器 / 敵 -->
+      <section class="scenario">
+        <div class="panel selector-card">
+          <div class="card-title">キャラクター</div>
+          <select id="cls" class="card-select" aria-label="クラス"></select>
+          <div class="card-summary" id="charSummary"></div>
+          <details class="card-details">
+            <summary>詳細設定</summary>
+            <div class="field-grid">
+              <label class="field checkbox span2">
+                <input type="checkbox" id="useMax" checked />
+                <span>最大ステータス (マテリアル込み)</span>
+              </label>
+              <label class="field">
+                <span>ATP <small>(武器抜き)</small></span>
+                <input type="number" id="baseAtp" min="0" />
+              </label>
+              <label class="field">
+                <span>ATA <small>(武器抜き)</small></span>
+                <input type="number" id="baseAta" min="0" step="0.1" />
+              </label>
+              <label class="field">
+                <span>LCK</span>
+                <input type="number" id="lck" min="0" max="100" value="100" />
+              </label>
+            </div>
+          </details>
+        </div>
+
+        <div class="panel selector-card">
+          <div class="card-title">武器</div>
+          <select id="wpPreset" class="card-select" aria-label="武器"></select>
+          <div class="card-summary" id="wpSummary"></div>
+          <details class="card-details">
+            <summary>詳細設定</summary>
+            <div class="field-grid">
+              <label class="field span2">
+                <span>武器種</span>
+                <select id="wpKind"></select>
+              </label>
+              <label class="field">
+                <span>ATP 最小</span>
+                <input type="number" id="wpAtpMin" min="0" />
+              </label>
+              <label class="field">
+                <span>ATP 最大</span>
+                <input type="number" id="wpAtpMax" min="0" />
+              </label>
+              <label class="field">
+                <span>ATA</span>
+                <input type="number" id="wpAta" min="0" />
+              </label>
+              <label class="field">
+                <span>グラインド</span>
+                <input type="number" id="wpGrind" min="0" />
+              </label>
+              <label class="field">
+                <span>属性 %</span>
+                <input type="number" id="wpAttr" min="0" max="100" value="0" />
+              </label>
+              <label class="field">
+                <span>Hit % <small>(ATA加算)</small></span>
+                <input type="number" id="wpHit" min="0" max="100" value="0" />
+              </label>
+              <label class="field span2">
+                <span>ヒット数/攻撃</span>
+                <input type="number" id="wpHits" min="1" max="10" placeholder="自動" />
+              </label>
+              <label class="field span2">
+                <span>特殊攻撃</span>
+                <select id="wpSpecial"></select>
+              </label>
+              <label class="field span2">
+                <span>特殊効果係数 <small>(剣類 50% / スライサー類 33%)</small></span>
+                <select id="wpEff">
+                  <option value="1">100% (減衰なし)</option>
+                  <option value="0.5">50%</option>
+                  <option value="0.33">33%</option>
+                </select>
+              </label>
+              <label class="field checkbox span2">
+                <input type="checkbox" id="wpHeavyAcc" />
+                <span>特殊が Heavy 相当の命中</span>
+              </label>
+              <label class="field checkbox span2">
+                <input type="checkbox" id="wpHeavyDmg" />
+                <span>特殊が Heavy 相当の威力</span>
+              </label>
+            </div>
+          </details>
+        </div>
+
+        <div class="panel selector-card">
+          <div class="card-title">敵 <small>(Ultimate)</small></div>
+          <select id="enPreset" class="card-select" aria-label="敵"></select>
+          <div class="card-summary" id="enSummary"></div>
+          <details class="card-details">
+            <summary>詳細設定</summary>
+            <div class="field-grid">
+              <label class="field">
+                <span>HP</span>
+                <input type="number" id="enHp" min="1" />
+              </label>
+              <label class="field">
+                <span>難易度</span>
+                <select id="enDifficulty">
+                  <option value="normal">Normal</option>
+                  <option value="hard">Hard</option>
+                  <option value="vhard">Very Hard</option>
+                  <option value="ultimate" selected>Ultimate</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>DFP</span>
+                <input type="number" id="enDfp" min="0" />
+              </label>
+              <label class="field">
+                <span>EVP</span>
+                <input type="number" id="enEvp" min="0" />
+              </label>
+              <label class="field">
+                <span>EDK <small>(即死耐性)</small></span>
+                <input type="number" id="enEdk" min="0" />
+              </label>
+              <label class="field">
+                <span>ESP <small>(異常耐性)</small></span>
+                <input type="number" id="enEsp" min="0" />
+              </label>
+              <label class="field checkbox">
+                <input type="checkbox" id="enMachine" />
+                <span>機械系</span>
+              </label>
+              <label class="field checkbox">
+                <input type="checkbox" id="enBoss" />
+                <span>ボス</span>
+              </label>
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <!-- 2. コンボビルダー (主役) -->
+      <fieldset class="panel panel-combo" id="panel-combo">
+        <legend>コンボ</legend>
+        <div class="combo-note" id="comboNote" hidden></div>
+        <div class="combo-steps" id="comboSteps"></div>
+        <div class="combo-footer">
+          <button type="button" id="autoComboBtn">最適コンボを探索</button>
+          <span class="combo-frames" id="comboFramesOut"></span>
+        </div>
+      </fieldset>
+
+      <!-- 3. バフ・状態 -->
+      <details class="panel collapsible" id="tuningDetails">
+        <summary>
+          <span class="collapsible-title">バフ・状態</span>
+          <span class="chips" id="tuningChips"></span>
+        </summary>
+        <div class="field-grid grid3">
+          <label class="field">
+            <span>シフタ Lv <output id="shiftaOut">0</output></span>
+            <input type="range" id="shifta" min="0" max="30" value="0" />
           </label>
           <label class="field">
-            <span>ATP <small>(武器抜き)</small></span>
-            <input type="number" id="baseAtp" min="0" />
+            <span>ザルア Lv <output id="zalureOut">0</output></span>
+            <input type="range" id="zalure" min="0" max="30" value="0" />
           </label>
           <label class="field">
-            <span>ATA <small>(武器抜き)</small></span>
-            <input type="number" id="baseAta" min="0" step="0.1" />
+            <span>距離 <small>(HU/FO のみペナルティ)</small></span>
+            <input type="number" id="ctxDistance" min="0" value="0" />
           </label>
-          <label class="field">
-            <span>LCK</span>
-            <input type="number" id="lck" min="0" max="100" value="100" />
+          <label class="field checkbox">
+            <input type="checkbox" id="ctxFrozen" />
+            <span>敵が凍結中 <small>(EVP×0.7)</small></span>
           </label>
+          <label class="field checkbox">
+            <input type="checkbox" id="ctxParalyzed" />
+            <span>敵が麻痺中 <small>(EVP×0.85)</small></span>
+          </label>
+          <label class="field checkbox">
+            <input type="checkbox" id="ctxCrits" checked />
+            <span>クリティカルを含める</span>
+          </label>
+          <label class="field checkbox">
+            <input type="checkbox" id="ctxV501" />
+            <span>V501 <small>(状態異常×1.5)</small></span>
+          </label>
+          <label class="field checkbox">
+            <input type="checkbox" id="ctxV502" />
+            <span>V502 <small>(即死×2)</small></span>
+          </label>
+          <label class="field checkbox">
+            <input type="checkbox" id="ctxSmartlink" />
+            <span>Smartlink <small>(距離ペナルティ無効)</small></span>
+          </label>
+          <label class="field checkbox">
+            <input type="checkbox" id="ctxSnGlitch" />
+            <span>SNグリッチ <small>(1段目↔2段目命中)</small></span>
+          </label>
+        </div>
+      </details>
+
+      <!-- 4. 防具・ユニット -->
+      <details class="panel collapsible" id="equipDetails">
+        <summary>
+          <span class="collapsible-title">防具・ユニット</span>
+          <span class="chips" id="equipChips"></span>
+        </summary>
+        <div class="field-grid grid3">
           <label class="field">
             <span>フレーム</span>
             <select id="frame"></select>
@@ -75,181 +261,16 @@
             <input type="number" id="armorAta" min="0" value="0" />
           </label>
         </div>
-      </fieldset>
-
-      <!-- 武器 -->
-      <fieldset class="panel" id="panel-weapon">
-        <legend>武器</legend>
-        <div class="field-grid">
-          <label class="field span2">
-            <span>プリセット</span>
-            <select id="wpPreset"></select>
-          </label>
-          <label class="field span2">
-            <span>武器種</span>
-            <select id="wpKind"></select>
-          </label>
-          <label class="field">
-            <span>ATP 最小</span>
-            <input type="number" id="wpAtpMin" min="0" />
-          </label>
-          <label class="field">
-            <span>ATP 最大</span>
-            <input type="number" id="wpAtpMax" min="0" />
-          </label>
-          <label class="field">
-            <span>ATA</span>
-            <input type="number" id="wpAta" min="0" />
-          </label>
-          <label class="field">
-            <span>グラインド</span>
-            <input type="number" id="wpGrind" min="0" />
-          </label>
-          <label class="field">
-            <span>属性 %</span>
-            <input type="number" id="wpAttr" min="0" max="100" value="0" />
-          </label>
-          <label class="field">
-            <span>Hit % <small>(ATA加算)</small></span>
-            <input type="number" id="wpHit" min="0" max="100" value="0" />
-          </label>
-          <label class="field span2">
-            <span>ヒット数/攻撃</span>
-            <input type="number" id="wpHits" min="1" max="10" placeholder="自動" />
-          </label>
-          <label class="field span2">
-            <span>特殊攻撃</span>
-            <select id="wpSpecial"></select>
-          </label>
-          <label class="field span2">
-            <span>特殊効果係数 <small>(剣類 50% / スライサー類 33%)</small></span>
-            <select id="wpEff">
-              <option value="1">100% (減衰なし)</option>
-              <option value="0.5">50%</option>
-              <option value="0.33">33%</option>
-            </select>
-          </label>
-          <label class="field checkbox span2">
-            <input type="checkbox" id="wpHeavyAcc" />
-            <span>特殊が Heavy 相当の命中 (Vjaya / Frozen Shooter 等)</span>
-          </label>
-          <label class="field checkbox span2">
-            <input type="checkbox" id="wpHeavyDmg" />
-            <span>特殊が Heavy 相当の威力 (Frozen Shooter / Snow Queen)</span>
-          </label>
-        </div>
-      </fieldset>
-
-      <!-- 敵 -->
-      <fieldset class="panel" id="panel-enemy">
-        <legend>敵</legend>
-        <div class="field-grid">
-          <label class="field span2">
-            <span>プリセット</span>
-            <select id="enPreset"></select>
-          </label>
-          <label class="field">
-            <span>HP</span>
-            <input type="number" id="enHp" min="1" />
-          </label>
-          <label class="field">
-            <span>難易度</span>
-            <select id="enDifficulty">
-              <option value="normal">Normal</option>
-              <option value="hard">Hard</option>
-              <option value="vhard">Very Hard</option>
-              <option value="ultimate" selected>Ultimate</option>
-            </select>
-          </label>
-          <label class="field">
-            <span>DFP</span>
-            <input type="number" id="enDfp" min="0" />
-          </label>
-          <label class="field">
-            <span>EVP</span>
-            <input type="number" id="enEvp" min="0" />
-          </label>
-          <label class="field">
-            <span>EDK <small>(即死耐性)</small></span>
-            <input type="number" id="enEdk" min="0" />
-          </label>
-          <label class="field">
-            <span>ESP <small>(状態異常耐性)</small></span>
-            <input type="number" id="enEsp" min="0" />
-          </label>
-          <label class="field checkbox">
-            <input type="checkbox" id="enMachine" />
-            <span>機械系</span>
-          </label>
-          <label class="field checkbox">
-            <input type="checkbox" id="enBoss" />
-            <span>ボス</span>
-          </label>
-        </div>
-      </fieldset>
-
-      <!-- 状況 -->
-      <fieldset class="panel" id="panel-context">
-        <legend>状況</legend>
-        <div class="field-grid">
-          <label class="field">
-            <span>シフタ Lv <output id="shiftaOut">0</output></span>
-            <input type="range" id="shifta" min="0" max="30" value="0" />
-          </label>
-          <label class="field">
-            <span>ザルア Lv <output id="zalureOut">0</output></span>
-            <input type="range" id="zalure" min="0" max="30" value="0" />
-          </label>
-          <label class="field checkbox">
-            <input type="checkbox" id="ctxFrozen" />
-            <span>敵が凍結中</span>
-          </label>
-          <label class="field checkbox">
-            <input type="checkbox" id="ctxParalyzed" />
-            <span>敵が麻痺中</span>
-          </label>
-          <label class="field checkbox">
-            <input type="checkbox" id="ctxV501" />
-            <span>V501</span>
-          </label>
-          <label class="field checkbox">
-            <input type="checkbox" id="ctxV502" />
-            <span>V502</span>
-          </label>
-          <label class="field checkbox">
-            <input type="checkbox" id="ctxSmartlink" />
-            <span>Smartlink</span>
-          </label>
-          <label class="field checkbox">
-            <input type="checkbox" id="ctxSnGlitch" />
-            <span>SNグリッチ</span>
-          </label>
-          <label class="field checkbox">
-            <input type="checkbox" id="ctxCrits" checked />
-            <span>クリティカルを含める</span>
-          </label>
-          <label class="field span2">
-            <span>射撃距離 <small>(HU/FO のみペナルティ)</small></span>
-            <input type="number" id="ctxDistance" min="0" value="0" />
-          </label>
-        </div>
-      </fieldset>
-
-      <!-- コンボ -->
-      <fieldset class="panel panel-combo" id="panel-combo">
-        <legend>コンボ</legend>
-        <div class="combo-steps" id="comboSteps"></div>
-        <div class="combo-footer">
-          <button type="button" id="autoComboBtn">最適コンボを探索</button>
-          <span class="combo-frames" id="comboFramesOut"></span>
-        </div>
-      </fieldset>
+        <p class="equip-note" id="setEffectNote" hidden></p>
+      </details>
     </div>
 
     <!-- 結果 -->
     <aside class="results" id="results" aria-live="polite">
       <div class="panel result-panel">
         <div class="result-error" id="resultError" hidden></div>
+
+        <div class="derived" id="derivedStats" title="計算に使われる実効値"></div>
 
         <div class="hpbar-block">
           <div class="hpbar-head">
@@ -289,7 +310,7 @@
             <tr>
               <th>段</th>
               <th>攻撃</th>
-              <th>命中率</th>
+              <th title="距離ペナルティ対象時は 最遠–密着 のレンジ表示">命中率</th>
               <th>ダメージ <small>min–max</small></th>
               <th>期待値</th>
             </tr>
@@ -307,7 +328,8 @@
     <p>
       計算式・データの出典:
       <a href="https://wiki.pioneer2.net/w/Game_mechanics" target="_blank" rel="noopener">Ephinea PSO Wiki — Game mechanics</a> /
-      <a href="https://wiki.pioneer2.net/w/Special_attacks" target="_blank" rel="noopener">Special attacks</a>
+      <a href="https://wiki.pioneer2.net/w/Special_attacks" target="_blank" rel="noopener">Special attacks</a> /
+      <a href="https://psostats.com/combo-calculator" target="_blank" rel="noopener">psostats.com</a> (実測検証済み)
     </p>
   </footer>
 
