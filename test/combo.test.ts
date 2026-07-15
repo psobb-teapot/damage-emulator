@@ -100,6 +100,23 @@ describe("simulateCombo", () => {
     expect(r.hits).toHaveLength(9);
   });
 
+  it("1段目空振り: 2段目以降がコンボ補正 (×1.3/×1.69) を受ける", () => {
+    // 空振り開始 [null, H, H] の2段目 = 通常開始 [H, H] の2段目と同じ補正
+    const whiff = simulateCombo({ ...base, attacks: [null, { type: "hard" }, { type: "hard" }] });
+    const normal = simulateCombo({ ...base, attacks: [{ type: "hard" }, { type: "hard" }] });
+    // 空振り段はヒットに含まれない
+    expect(whiff.hits).toHaveLength(2);
+    expect(whiff.hits.map((h) => h.comboStep)).toEqual([2, 3]);
+    // 空振り後の2段目の命中率 = 通常の2段目の命中率 (×1.3)
+    expect(whiff.hits[0]!.accuracy).toBe(normal.hits[1]!.accuracy);
+    // 3段目は ×1.69 (通常開始2段では到達しない補正)
+    expect(whiff.hits[1]!.accuracy).toBeGreaterThanOrEqual(whiff.hits[0]!.accuracy);
+  });
+
+  it("全段空振りはエラー", () => {
+    expect(() => simulateCombo({ ...base, attacks: [null, null, null] })).toThrow();
+  });
+
   it("attacks が 0 段や 4 段はエラー", () => {
     expect(() => simulateCombo({ ...base, attacks: [] })).toThrow();
     expect(() =>

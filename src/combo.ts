@@ -32,6 +32,9 @@ export function simulateCombo(input: ComboInput): ComboResult {
   if (attacks.length < 1 || attacks.length > 3) {
     throw new Error("attacks はコンボ 1〜3 段で指定してください。");
   }
+  if (attacks.every((a) => a === null)) {
+    throw new Error("コンボに攻撃が 1 段以上必要です (すべて空振りです)。");
+  }
 
   const includeCrits = context.includeCriticals ?? true;
   const critChance = includeCrits ? criticalChance(player.lck) : 0;
@@ -43,11 +46,17 @@ export function simulateCombo(input: ComboInput): ComboResult {
   const hits: HitResult[] = [];
   const costs: string[] = [];
 
-  // 各段の命中率を先に計算 (SNグリッチ: 2段目が高ければ1段目を置換)
+  // 各段の命中率を先に計算 (空振り段は 0。SNグリッチ: 2段目が高ければ1段目を置換)
   const stepAccs = attacks.map((attack, i) =>
-    hitChance(player, weapon, enemy, attack.type, (i + 1) as 1 | 2 | 3, context),
+    attack ? hitChance(player, weapon, enemy, attack.type, (i + 1) as 1 | 2 | 3, context) : 0,
   );
-  if (context.snGlitch && stepAccs.length >= 2 && stepAccs[1]! > stepAccs[0]!) {
+  if (
+    context.snGlitch &&
+    attacks[0] &&
+    attacks[1] &&
+    stepAccs.length >= 2 &&
+    stepAccs[1]! > stepAccs[0]!
+  ) {
     stepAccs[0] = stepAccs[1]!;
   }
   const showRange =
@@ -57,7 +66,8 @@ export function simulateCombo(input: ComboInput): ComboResult {
   let dist: HpDistribution = new Map([[enemy.hp, 1]]);
 
   for (let step = 0; step < attacks.length; step++) {
-    const attack = attacks[step]!;
+    const attack = attacks[step];
+    if (!attack) continue; // 空振り: コンボ段数だけ進める
     const comboStep = (step + 1) as 1 | 2 | 3;
     const nHits = attack.hits ?? defaultHits(attack.type);
 

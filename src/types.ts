@@ -191,8 +191,12 @@ export interface ComboInput {
   player: PlayerStats;
   weapon: Weapon;
   enemy: Enemy;
-  /** コンボ列 (1〜3 段) 例: [{type:"hard"},{type:"hard"},{type:"special"}] */
-  attacks: ComboAttack[];
+  /**
+   * コンボ列 (1〜3 段) 例: [{type:"hard"},{type:"hard"},{type:"special"}]。
+   * null の段は空振り (敵に当てずコンボ段数だけ進める。
+   * 敵のスポーン前に1段目を振っておくテクニック)。
+   */
+  attacks: (ComboAttack | null)[];
   context?: CombatContext;
 }
 

@@ -178,15 +178,18 @@ for (let step = 1; step <= 3; step++) {
   const div = document.createElement("div");
   div.className = "combo-step";
   div.id = `comboStep${step}`;
-  const types: (AttackType | "none")[] =
-    step === 1 ? ["normal", "hard", "special"] : ["none", "normal", "hard", "special"];
+  const types: (AttackType | "none")[] = ["none", "normal", "hard", "special"];
+  const noneTitle =
+    step === 1
+      ? "空振り (敵のスポーン前に振り、2段目以降のコンボ命中補正だけ乗せる)"
+      : "この段以降で攻撃しない (途中の段なら空振り)";
   div.innerHTML = `
     <div class="combo-step-title">${step} 段目</div>
     <div class="combo-types">
       ${types
         .map(
           (t) => `
-        <label class="combo-type t-${t}">
+        <label class="combo-type t-${t}" ${t === "none" ? `title="${noneTitle}"` : ""}>
           <input type="radio" name="combo${step}" value="${t}" ${
             t === STEP_DEFAULTS[step - 1] ? "checked" : ""
           } />
@@ -305,15 +308,21 @@ function updateConstraints(): void {
     stepEl.classList.toggle("step-disabled", disableStep);
     for (const radio of stepEl.querySelectorAll<HTMLInputElement>("input[type=radio]")) {
       const isSpecial = radio.value === "special";
-      radio.disabled = disableStep || (isSpecial && !hasSpecial);
+      // 単発武器は空振り開始も不可 (振った時点で終わり)
+      const isNoneOnSingle = single && step === 1 && radio.value === "none";
+      radio.disabled = disableStep || (isSpecial && !hasSpecial) || isNoneOnSingle;
       radio.parentElement!.classList.toggle(
         "type-disabled",
-        isSpecial && !hasSpecial && !disableStep,
+        (isSpecial && !hasSpecial && !disableStep) || isNoneOnSingle,
       );
       radio.parentElement!.title =
         isSpecial && !hasSpecial ? "この武器に特殊攻撃はありません" : "";
     }
     if (disableStep) comboRadio(step, "none")!.checked = true;
+    // 単発武器で1段目が空振りになっていたら攻撃へ退避
+    if (single && step === 1 && checkedCombo(1) === "none") {
+      comboRadio(1, hasSpecial ? "special" : "hard")!.checked = true;
+    }
     // 特殊なし武器で S が選択されていたら H へ退避
     if (!hasSpecial && checkedCombo(step) === "special") {
       comboRadio(step, "hard")!.checked = true;
@@ -324,18 +333,22 @@ function updateConstraints(): void {
 
 /* ================= 入力の収集 ================= */
 
-function readCombo(): ComboAttack[] {
-  const attacks: ComboAttack[] = [];
-  for (let step = 1; step <= 3; step++) {
-    const type = checkedCombo(step);
-    if (type === "none") break;
-    const hitsRaw = input(`hits${step}`).value;
-    attacks.push({
+function readCombo(): (ComboAttack | null)[] {
+  const raw = [1, 2, 3].map((s) => checkedCombo(s));
+  // 末尾の「–」は打ち切り、先頭・途中の「–」は空振り (null) として段数を進める
+  let last = -1;
+  raw.forEach((t, i) => {
+    if (t !== "none") last = i;
+  });
+  if (last < 0) return [];
+  return raw.slice(0, last + 1).map((type, i) => {
+    if (type === "none") return null;
+    const hitsRaw = input(`hits${i + 1}`).value;
+    return {
       type: type as AttackType,
       hits: hitsRaw ? Math.max(1, Math.min(10, Number(hitsRaw))) : undefined,
-    });
-  }
-  return attacks;
+    };
+  });
 }
 
 function readWeapon(): Weapon {
@@ -863,17 +876,20 @@ function renderLineView(inputData: ComboInput): void {
   const currentHit = num("lineHit"); // 想定Hit% (武器のHit%とは独立)
   const maxHitCap = WEAPONS[select("wpPreset").value]?.maxHitPercent ?? 100;
 
-  const hitsOf = (a: (typeof attacks)[number]): number =>
+  const hitsOf = (a: ComboAttack): number =>
     a.hits ??
     (a.type === "special"
       ? (weapon.specialHits ?? weapon.hitsPerAttack ?? DEFAULT_HITS_PER_ATTACK[weapon.kind])
       : (weapon.hitsPerAttack ?? DEFAULT_HITS_PER_ATTACK[weapon.kind]));
 
-  // ヒット数列の対象 = 最多ヒットの段 (Dark Flow の特殊5本など)
-  let hitsType = attacks[0]!.type;
-  let hitsStep = 1;
-  let maxHits = hitsOf(attacks[0]!);
+  // ヒット数列の対象 = 最多ヒットの段 (Dark Flow の特殊5本など)。空振り段 (null) は除外
+  const firstIdx = attacks.findIndex((a) => a !== null);
+  if (firstIdx < 0) return;
+  let hitsType = attacks[firstIdx]!.type;
+  let hitsStep = firstIdx + 1;
+  let maxHits = hitsOf(attacks[firstIdx]!);
   attacks.forEach((a, i) => {
+    if (!a) return;
     const h = hitsOf(a);
     if (h > maxHits) {
       maxHits = h;
@@ -883,7 +899,11 @@ function renderLineView(inputData: ComboInput): void {
   });
 
   const stepThs = attacks
-    .map((a, i) => `<th>${i + 1}段目${ATTACK_LABELS[a.type]}<br><small>必要Hit%</small></th>`)
+    .map((a, i) =>
+      a
+        ? `<th>${i + 1}段目${ATTACK_LABELS[a.type]}<br><small>必要Hit%</small></th>`
+        : `<th>${i + 1}段目<br><small>空振り</small></th>`,
+    )
     .join("");
   const hitsThs =
     maxHits > 1
@@ -915,10 +935,13 @@ function renderLineView(inputData: ComboInput): void {
     }
 
     const reqs = attacks.map((a, i) =>
-      requiredHitPercent(player, weapon, enemy, a.type, (i + 1) as 1 | 2 | 3, ctx),
+      a ? requiredHitPercent(player, weapon, enemy, a.type, (i + 1) as 1 | 2 | 3, ctx) : null,
     );
     const reqCells = reqs
       .map((req) => {
+        if (req === null) {
+          return `<td class="num req-imp" title="空振り (敵に当てない)">—</td>`;
+        }
         // Hit% は 5% 単位でしか付かないため、入手可能な値へ切り上げて表示
         const attainable = !Number.isFinite(req) ? Infinity : Math.ceil(req / 5) * 5;
         if (attainable > maxHitCap) {
@@ -1207,11 +1230,11 @@ function render(): void {
       cost.hidden = true;
     }
 
-    // 所要フレーム
+    // 所要フレーム (空振り段は通常振りとして計上)
     const fr = comboFrames(
       inputData.weapon,
       select("cls").value,
-      inputData.attacks.map((a) => a.type),
+      inputData.attacks.map((a) => a?.type ?? "normal"),
     );
     $("comboFramesOut").textContent =
       fr.frames != null ? `所要フレーム: ${fr.frames}F` : "所要フレーム: データなし";
