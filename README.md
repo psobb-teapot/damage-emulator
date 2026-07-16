@@ -6,8 +6,6 @@
 `damage-emulator/` サブディレクトリ。github.com/psobb-teapot/damage-emulator は
 CI (emulator-mirror.yml) が subtree split を push する**読み取り専用ミラー**で、
 そこへの push が上記 GitHub Pages を自動更新する (サーバーアプリとは独立)。
-Rappy Runs 本体の `/calc` でも同じ電卓が配信される (Docker ビルドの engine
-ステージが `static/calc/` に生成)。
 
 PSOBB (Phantasy Star Online: Blue Burst) のコンボ・ダメージ計算エンジン。
 [psostats.com/combo-calculator](https://psostats.com/combo-calculator) 相当の計算を
