@@ -109,6 +109,10 @@ function fillGroupedSelect(
 fillSelect(select("cls"), Object.keys(CLASSES).map((k) => [k, k]));
 select("cls").value = "HUcast";
 
+type WpComboEntry = { key: string; label: string; group: string | null };
+/** 表示順の全候補 (先頭はカスタム武器、以降は武器種ごと) */
+const WP_COMBO_ENTRIES: WpComboEntry[] = [{ key: "custom", label: "カスタム武器", group: null }];
+
 {
   const groups = new Map<string, [string, string][]>();
   for (const kind of Object.keys(WEAPON_KIND_LABELS) as WeaponKind[]) {
@@ -120,24 +124,17 @@ select("cls").value = "HUcast";
   }
   for (const [k, v] of groups) if (v.length === 0) groups.delete(k);
   fillGroupedSelect(select("wpPreset"), [["custom", "カスタム武器"]], groups);
+  for (const [group, entries] of groups) {
+    for (const [key, label] of entries) WP_COMBO_ENTRIES.push({ key, label, group });
+  }
 }
 
-/* ---- 武器のテキスト検索 (datalist 補完) ---- */
+/* ---- 武器コンボボックス (テキスト入力とドロップダウンの一体型) ---- */
 
 /** 小文字化した武器名 → 正式キー (大文字小文字を無視した確定用) */
 const WEAPON_KEY_BY_LOWER = new Map<string, string>(
   Object.keys(WEAPONS).map((k) => [k.toLowerCase(), k]),
 );
-{
-  const list = $<HTMLDataListElement>("wpSearchList");
-  for (const [key, w] of Object.entries(WEAPONS)) {
-    const opt = document.createElement("option");
-    opt.value = key;
-    const sp = w.special ? ` [${typeof w.special === "string" ? w.special : w.special.name}]` : "";
-    opt.label = `${WEAPON_KIND_LABELS[w.kind]}${sp}`;
-    list.appendChild(opt);
-  }
-}
 
 /** 検索テキストに一致する武器キー (完全一致 → 前方一致 → 部分一致の順) */
 function matchWeaponKey(text: string): string | null {
@@ -153,18 +150,96 @@ function matchWeaponKey(text: string): string | null {
   );
 }
 
-/** 武器を確定し、プリセット反映と再描画まで行う */
-function commitWeaponSearch(key: string): void {
+/** フィルタ後の表示中候補 (見出しを除く)。アクティブ項目は index で追跡 */
+let wpComboVisible: WpComboEntry[] = [];
+let wpComboActive = -1;
+
+function wpComboFilter(text: string): WpComboEntry[] {
+  const q = text.trim().toLowerCase();
+  if (!q) return WP_COMBO_ENTRIES;
+  return WP_COMBO_ENTRIES.filter((e) =>
+    e.key === "custom"
+      ? e.label.includes(text.trim())
+      : e.key.toLowerCase().includes(q) || e.label.toLowerCase().includes(q),
+  );
+}
+
+function wpComboIsOpen(): boolean {
+  return !$("wpComboList").hidden;
+}
+
+function wpComboRenderList(): void {
+  const list = $("wpComboList");
+  list.innerHTML = "";
+  const selected = select("wpPreset").value;
+  if (wpComboVisible.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "combo-empty";
+    empty.textContent = "一致する武器がありません";
+    list.appendChild(empty);
+    return;
+  }
+  let group: string | null = null;
+  wpComboVisible.forEach((e, i) => {
+    if (e.group && e.group !== group) {
+      group = e.group;
+      const head = document.createElement("div");
+      head.className = "combo-group";
+      head.textContent = e.group;
+      list.appendChild(head);
+    }
+    const item = document.createElement("div");
+    item.className =
+      "combo-item" +
+      (i === wpComboActive ? " combo-active" : "") +
+      (e.key === selected ? " combo-selected" : "");
+    item.setAttribute("role", "option");
+    item.setAttribute("aria-selected", String(e.key === selected));
+    item.textContent = e.label;
+    // click では blur が先行してリストが閉じるため pointerdown で確定する
+    item.addEventListener("pointerdown", (ev) => {
+      ev.preventDefault();
+      wpComboPick(e.key);
+    });
+    item.addEventListener("pointerenter", () => {
+      wpComboActive = i;
+      wpComboRenderList();
+    });
+    list.appendChild(item);
+  });
+  list.querySelector(".combo-active")?.scrollIntoView({ block: "nearest" });
+}
+
+/** 候補リストを開く。filtered=false ならテキストに関わらず全件を表示する */
+function wpComboOpen(filtered: boolean): void {
+  wpComboVisible = filtered ? wpComboFilter(input("wpSearch").value) : WP_COMBO_ENTRIES;
+  const selected = select("wpPreset").value;
+  wpComboActive = filtered
+    ? (wpComboVisible.length > 0 ? 0 : -1)
+    : wpComboVisible.findIndex((e) => e.key === selected);
+  $("wpComboList").hidden = false;
+  input("wpSearch").setAttribute("aria-expanded", "true");
+  wpComboRenderList();
+}
+
+function wpComboClose(): void {
+  $("wpComboList").hidden = true;
+  input("wpSearch").setAttribute("aria-expanded", "false");
+}
+
+/** 候補を確定し、プリセット反映と再描画まで行う */
+function wpComboPick(key: string): void {
+  wpComboClose();
   select("wpPreset").value = key;
-  input("wpSearch").value = key;
+  syncWeaponSearch();
   applyWeaponPreset();
   render();
 }
 
-/** 検索欄の表示をプリセット選択と同期する (カスタムは空欄) */
+/** 入力欄の表示をプリセット選択と同期する */
 function syncWeaponSearch(): void {
   const key = select("wpPreset").value;
-  input("wpSearch").value = key === "custom" ? "" : key;
+  input("wpSearch").value = key === "custom" ? "カスタム武器" : key;
 }
 
 fillSelect(
@@ -1396,31 +1471,62 @@ select("wpPreset").addEventListener("change", () => {
   render();
 });
 
-// 武器のテキスト検索: datalist 候補の確定 (完全一致) は即反映、Enter は最良一致で確定
-// フォーカス時は全選択し、表示中の武器名をそのまま打ち替えられるようにする
+// 武器コンボボックス: フォーカスで全件リストを開き全選択、入力で絞り込み、
+// ↑↓ で候補移動、Enter で確定 (リストが閉じていれば最良一致)、Esc で取り消し
 input("wpSearch").addEventListener("focus", () => {
   input("wpSearch").select();
+  wpComboOpen(false);
+});
+// フォーカス済みの欄を再クリックしたときもリストを開き直す
+input("wpSearch").addEventListener("click", () => {
+  if (!wpComboIsOpen()) wpComboOpen(false);
 });
 input("wpSearch").addEventListener("input", () => {
-  const key = WEAPON_KEY_BY_LOWER.get(input("wpSearch").value.trim().toLowerCase());
-  if (key) commitWeaponSearch(key);
+  wpComboOpen(true);
 });
 input("wpSearch").addEventListener("keydown", (ev) => {
-  if (ev.key !== "Enter") return;
-  ev.preventDefault();
-  const key = matchWeaponKey(input("wpSearch").value);
-  if (key) commitWeaponSearch(key);
-});
-input("wpSearch").addEventListener("change", () => {
-  const text = input("wpSearch").value;
-  if (!text.trim()) {
-    // 空欄で確定した場合は現在の選択を表示し直す
+  if (ev.key === "ArrowDown" || ev.key === "ArrowUp") {
+    ev.preventDefault();
+    if (!wpComboIsOpen()) {
+      wpComboOpen(false);
+      return;
+    }
+    const n = wpComboVisible.length;
+    if (n === 0) return;
+    const dir = ev.key === "ArrowDown" ? 1 : -1;
+    wpComboActive = (wpComboActive + dir + n) % n;
+    wpComboRenderList();
+  } else if (ev.key === "Enter") {
+    ev.preventDefault();
+    if (wpComboIsOpen() && wpComboActive >= 0 && wpComboVisible[wpComboActive]) {
+      wpComboPick(wpComboVisible[wpComboActive]!.key);
+    } else {
+      const key = matchWeaponKey(input("wpSearch").value);
+      if (key) wpComboPick(key);
+    }
+  } else if (ev.key === "Escape") {
+    wpComboClose();
     syncWeaponSearch();
-    return;
   }
-  const key = matchWeaponKey(text);
-  if (key) commitWeaponSearch(key);
-  else syncWeaponSearch(); // 一致なし: 現在の選択へ戻す
+});
+// フォーカスが外れたら閉じる。編集途中のテキストは最良一致で確定、なければ元へ戻す
+input("wpSearch").addEventListener("blur", () => {
+  wpComboClose();
+  const text = input("wpSearch").value;
+  const current = select("wpPreset").value;
+  const shown = current === "custom" ? "カスタム武器" : current;
+  if (text === shown) return;
+  const key = text.trim() ? matchWeaponKey(text) : null;
+  if (key && key !== current) wpComboPick(key);
+  else syncWeaponSearch();
+});
+$("wpComboToggle").addEventListener("pointerdown", (ev) => {
+  ev.preventDefault();
+  if (wpComboIsOpen()) {
+    wpComboClose();
+  } else {
+    input("wpSearch").focus(); // focus ハンドラが全件リストを開く
+  }
 });
 select("enPreset").addEventListener("change", () => {
   applyEnemyPreset();

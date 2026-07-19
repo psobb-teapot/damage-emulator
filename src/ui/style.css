@@ -165,25 +165,72 @@ a {
   outline-offset: 1px;
 }
 
-/* 武器名のテキスト検索 (datalist 補完) */
-.card-search {
-  font: 600 14px var(--font-display);
-  color: var(--ink);
-  background: rgba(11, 20, 36, 0.85);
-  border: 1px solid rgba(82, 216, 239, 0.45);
-  padding: 8px 10px;
-  width: 100%;
-  margin-bottom: 6px;
+/* 武器コンボボックス (テキスト入力とドロップダウンの一体型) */
+.combobox {
+  position: relative;
 }
 
-.card-search::placeholder {
+.combo-input {
+  padding-right: 32px;
+}
+
+.combo-input::placeholder {
   color: var(--muted);
   font-weight: 400;
 }
 
-.card-search:focus-visible {
-  outline: 2px solid var(--photon);
-  outline-offset: 1px;
+.combo-toggle {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  bottom: 1px;
+  width: 30px;
+  border: none;
+  background: none;
+  color: var(--photon);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.combo-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 60;
+  max-height: 340px;
+  overflow-y: auto;
+  background: #0b1424;
+  border: 1px solid var(--photon);
+  border-top: none;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.55);
+}
+
+.combo-group {
+  padding: 7px 10px 3px;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+
+.combo-item {
+  padding: 6px 10px 6px 16px;
+  font: 600 13px var(--font-display);
+  cursor: pointer;
+}
+
+.combo-item.combo-active {
+  background: rgba(82, 216, 239, 0.18);
+}
+
+.combo-item.combo-selected {
+  color: var(--photon);
+}
+
+.combo-empty {
+  padding: 10px;
+  font-size: 12px;
+  color: var(--muted);
 }
 
 .card-summary {

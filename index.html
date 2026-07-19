@@ -103,18 +103,23 @@
 
         <div class="panel selector-card">
           <div class="card-title">武器</div>
-          <input
-            type="text"
-            id="wpSearch"
-            class="card-search"
-            list="wpSearchList"
-            placeholder="武器名で検索…"
-            autocomplete="off"
-            spellcheck="false"
-            aria-label="武器名で検索"
-          />
-          <datalist id="wpSearchList"></datalist>
-          <select id="wpPreset" class="card-select" aria-label="武器"></select>
+          <div class="combobox" id="wpCombo">
+            <input
+              type="text"
+              id="wpSearch"
+              class="card-select combo-input"
+              placeholder="武器名で検索…"
+              autocomplete="off"
+              spellcheck="false"
+              role="combobox"
+              aria-label="武器"
+              aria-expanded="false"
+              aria-controls="wpComboList"
+            />
+            <button type="button" class="combo-toggle" id="wpComboToggle" tabindex="-1" aria-label="候補を開く">▾</button>
+            <div class="combo-list" id="wpComboList" role="listbox" hidden></div>
+          </div>
+          <select id="wpPreset" hidden aria-hidden="true"></select>
           <div class="card-summary" id="wpSummary"></div>
           <div class="quick-row">
             <label class="quick-field">
