@@ -103,6 +103,17 @@
 
         <div class="panel selector-card">
           <div class="card-title">武器</div>
+          <input
+            type="text"
+            id="wpSearch"
+            class="card-search"
+            list="wpSearchList"
+            placeholder="武器名で検索…"
+            autocomplete="off"
+            spellcheck="false"
+            aria-label="武器名で検索"
+          />
+          <datalist id="wpSearchList"></datalist>
           <select id="wpPreset" class="card-select" aria-label="武器"></select>
           <div class="card-summary" id="wpSummary"></div>
           <div class="quick-row">

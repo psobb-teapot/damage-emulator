@@ -122,6 +122,51 @@ select("cls").value = "HUcast";
   fillGroupedSelect(select("wpPreset"), [["custom", "カスタム武器"]], groups);
 }
 
+/* ---- 武器のテキスト検索 (datalist 補完) ---- */
+
+/** 小文字化した武器名 → 正式キー (大文字小文字を無視した確定用) */
+const WEAPON_KEY_BY_LOWER = new Map<string, string>(
+  Object.keys(WEAPONS).map((k) => [k.toLowerCase(), k]),
+);
+{
+  const list = $<HTMLDataListElement>("wpSearchList");
+  for (const [key, w] of Object.entries(WEAPONS)) {
+    const opt = document.createElement("option");
+    opt.value = key;
+    const sp = w.special ? ` [${typeof w.special === "string" ? w.special : w.special.name}]` : "";
+    opt.label = `${WEAPON_KIND_LABELS[w.kind]}${sp}`;
+    list.appendChild(opt);
+  }
+}
+
+/** 検索テキストに一致する武器キー (完全一致 → 前方一致 → 部分一致の順) */
+function matchWeaponKey(text: string): string | null {
+  const q = text.trim().toLowerCase();
+  if (!q) return null;
+  const exact = WEAPON_KEY_BY_LOWER.get(q);
+  if (exact) return exact;
+  const keys = Object.keys(WEAPONS);
+  return (
+    keys.find((k) => k.toLowerCase().startsWith(q)) ??
+    keys.find((k) => k.toLowerCase().includes(q)) ??
+    null
+  );
+}
+
+/** 武器を確定し、プリセット反映と再描画まで行う */
+function commitWeaponSearch(key: string): void {
+  select("wpPreset").value = key;
+  input("wpSearch").value = key;
+  applyWeaponPreset();
+  render();
+}
+
+/** 検索欄の表示をプリセット選択と同期する (カスタムは空欄) */
+function syncWeaponSearch(): void {
+  const key = select("wpPreset").value;
+  input("wpSearch").value = key === "custom" ? "" : key;
+}
+
 fillSelect(
   select("wpKind"),
   (Object.keys(WEAPON_KIND_LABELS) as WeaponKind[]).map((k) => [k, WEAPON_KIND_LABELS[k]]),
@@ -1347,7 +1392,35 @@ input("useMax").addEventListener("change", () => {
 });
 select("wpPreset").addEventListener("change", () => {
   applyWeaponPreset();
+  syncWeaponSearch();
   render();
+});
+
+// 武器のテキスト検索: datalist 候補の確定 (完全一致) は即反映、Enter は最良一致で確定
+// フォーカス時は全選択し、表示中の武器名をそのまま打ち替えられるようにする
+input("wpSearch").addEventListener("focus", () => {
+  input("wpSearch").select();
+});
+input("wpSearch").addEventListener("input", () => {
+  const key = WEAPON_KEY_BY_LOWER.get(input("wpSearch").value.trim().toLowerCase());
+  if (key) commitWeaponSearch(key);
+});
+input("wpSearch").addEventListener("keydown", (ev) => {
+  if (ev.key !== "Enter") return;
+  ev.preventDefault();
+  const key = matchWeaponKey(input("wpSearch").value);
+  if (key) commitWeaponSearch(key);
+});
+input("wpSearch").addEventListener("change", () => {
+  const text = input("wpSearch").value;
+  if (!text.trim()) {
+    // 空欄で確定した場合は現在の選択を表示し直す
+    syncWeaponSearch();
+    return;
+  }
+  const key = matchWeaponKey(text);
+  if (key) commitWeaponSearch(key);
+  else syncWeaponSearch(); // 一致なし: 現在の選択へ戻す
 });
 select("enPreset").addEventListener("change", () => {
   applyEnemyPreset();
@@ -1367,6 +1440,7 @@ const weaponFieldIds = [
 for (const id of weaponFieldIds) {
   $(id).addEventListener("input", () => {
     select("wpPreset").value = "custom";
+    syncWeaponSearch();
   });
 }
 const enemyFieldIds = ["enHp", "enDfp", "enEvp", "enEdk", "enEsp", "enDifficulty", "enMachine", "enBoss"];
@@ -1437,6 +1511,7 @@ void (async () => {
   }
   $("shiftaOut").textContent = input("shifta").value;
   $("zalureOut").textContent = input("zalure").value;
+  syncWeaponSearch();
   setActiveView(activeView);
   render();
 })();
