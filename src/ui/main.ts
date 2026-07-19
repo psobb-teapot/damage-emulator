@@ -1251,6 +1251,21 @@ function render(): void {
     }
     $("statExpected").textContent = fmt(result.totals.expected);
     $("statAvg").textContent = fmt(result.totals.avg);
+    // コンボ合計の下限 (乱数最小・クリなし)。下限で HP を超えれば乱数によらず撃破確定
+    const rangeNote = $("statAvgRange");
+    if (result.totals.max > 0) {
+      rangeNote.hidden = false;
+      if (result.totals.min >= enemyHp) {
+        rangeNote.textContent = `下限 ${fmt(result.totals.min)} — 全弾命中なら乱数によらず撃破`;
+        rangeNote.classList.add("note-sure");
+      } else {
+        rangeNote.textContent = `下限 ${fmt(result.totals.min)} / 上限 ${fmt(result.totals.max)}`;
+        rangeNote.classList.remove("note-sure");
+      }
+    } else {
+      // hpCut 特殊 (Demon's 等) のみのコンボは ATP ダメージ幅を持たない
+      rangeNote.hidden = true;
+    }
     $("statRemain").textContent = fmt(result.expectedRemainingHp);
 
     // ヒットテーブル

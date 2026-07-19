@@ -1091,6 +1091,11 @@ fieldset.panel {
   color: var(--amber);
 }
 
+/* 下限ダメージだけで撃破が確定しているとき (kill-sure と同系のアンバー) */
+.stat-note.note-sure {
+  color: var(--amber);
+}
+
 /* ヒットテーブル */
 
 .hit-table {
