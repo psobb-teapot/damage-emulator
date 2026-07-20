@@ -783,11 +783,17 @@ for (const sel of document.querySelectorAll<HTMLSelectElement>(".cond-zalure-sel
     opt.textContent = String(lv);
     sel.appendChild(opt);
   }
-  sel.addEventListener("change", () => {
+  // select は input → change の順に発火し、input が main へバブルした時点で
+  // render() → updateCondBars() が旧値で select を巻き戻してしまうため、
+  // change ではなく最初の input で先にスライダーへ反映する
+  const syncFromSelect = () => {
     const z = input("zalure");
+    if (z.value === sel.value) return;
     z.value = sel.value;
     z.dispatchEvent(new Event("input", { bubbles: true }));
-  });
+  };
+  sel.addEventListener("input", syncFromSelect);
+  sel.addEventListener("change", syncFromSelect);
 }
 
 /** 条件バーの表示状態を上部カードと同期する */
