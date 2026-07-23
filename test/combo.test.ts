@@ -35,6 +35,45 @@ describe("simulateCombo", () => {
     expect(r.expectedRemainingHp).toBeLessThanOrEqual(base.enemy.hp);
   });
 
+  it("キル確率はダメージ乱数を反映する (min < HP ≤ max なら 0 < P < 1)", () => {
+    // 命中100%・クリなしの1ヒット。HP を min と max の間に置くと
+    // 一様分布の裾の分だけ倒し損ねる確率が残る
+    const player = { ...base.player, baseAta: 9999 };
+    const weapon = { ...WEAPONS["Excalibur"]!, hitsPerAttack: 1 };
+    const enemy = { ...base.enemy, evp: 0 };
+    const context = { includeCriticals: false } as const;
+    const probe = simulateCombo({ player, weapon, enemy, attacks: [{ type: "hard" }], context });
+    const { min, max } = probe.hits[0]!.damage;
+    expect(max).toBeGreaterThan(min); // 前提: ダメージに幅がある
+
+    const hp = Math.floor((min + max) / 2);
+    const r = simulateCombo({
+      player, weapon, enemy: { ...enemy, hp }, attacks: [{ type: "hard" }], context,
+    });
+    // 整数一様分布なら P(kill) = (max - hp + 1) / (max - min + 1)
+    const expected = (max - hp + 1) / (max - min + 1);
+    expect(r.killProbability).toBeGreaterThan(0);
+    expect(r.killProbability).toBeLessThan(1);
+    expect(r.killProbability).toBeCloseTo(expected, 3);
+  });
+
+  it("合計min未満のHPなら確定キル、合計max超のHPならキル確率0 (命中100%・クリなし)", () => {
+    const player = { ...base.player, baseAta: 9999 };
+    const weapon = { ...WEAPONS["Excalibur"]!, hitsPerAttack: 1 };
+    const enemy = { ...base.enemy, evp: 0 };
+    const context = { includeCriticals: false } as const;
+    const attacks = [{ type: "hard" as const }, { type: "hard" as const }];
+    const probe = simulateCombo({ player, weapon, enemy, attacks, context });
+    const sure = simulateCombo({
+      player, weapon, enemy: { ...enemy, hp: probe.totals.min }, attacks, context,
+    });
+    expect(sure.killProbability).toBe(1);
+    const never = simulateCombo({
+      player, weapon, enemy: { ...enemy, hp: probe.totals.max + 1 }, attacks, context,
+    });
+    expect(never.killProbability).toBe(0);
+  });
+
   it("命中100%・ダメージ十分ならキル確率はほぼ1", () => {
     const r = simulateCombo({
       ...base,

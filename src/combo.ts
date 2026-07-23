@@ -62,8 +62,18 @@ export function simulateCombo(input: ComboInput): ComboResult {
   const showRange =
     distancePenaltyApplies(player, context) && (weapon.horizontalDistance ?? 0) > 0;
 
-  // 残りHPの確率分布。初期状態: 満タン HP が確率 1
-  let dist: HpDistribution = new Map([[enemy.hp, 1]]);
+  // 各ヒットの分布更新に必要な情報 (先に集めて、後で必要な場合のみ畳み込む)
+  type HitOp = {
+    pHit: number;
+    activation: number;
+    isInstantKill: boolean;
+    isHpCut: boolean;
+    hpCutFraction: number | null;
+    damageDist: Array<[number, number]>;
+    maxDamage: number;
+    meanDamage: number;
+  };
+  const ops: HitOp[] = [];
 
   for (let step = 0; step < attacks.length; step++) {
     const attack = attacks[step];
@@ -91,6 +101,7 @@ export function simulateCombo(input: ComboInput): ComboResult {
     const avgWithCrit =
       baseDamage * (1 - critChance / 100) +
       criticalDamage(baseDamage) * (critChance / 100);
+    const damageDist = isHpCut ? [] : hitDamageDistribution(dmg, critChance);
 
     for (let h = 0; h < nHits; h++) {
       const pHit = acc / 100;
@@ -112,7 +123,41 @@ export function simulateCombo(input: ComboInput): ComboResult {
         special: special ?? undefined,
       });
 
-      // --- 残りHP分布の更新 ---
+      let maxDamage = 0;
+      let meanDamage = 0;
+      for (const [d, q] of damageDist) {
+        if (d > maxDamage) maxDamage = d;
+        meanDamage += d * q;
+      }
+      ops.push({
+        pHit,
+        activation,
+        isInstantKill,
+        isHpCut,
+        hpCutFraction: special?.hpCutFraction ?? null,
+        damageDist,
+        maxDamage,
+        meanDamage,
+      });
+    }
+  }
+
+  // --- 残りHP分布の計算 ---
+  // 最大ロール (全ヒット命中・全クリティカル) でも HP に届かず、即死・削り特殊も
+  // ないなら、どの分岐でも残りHPは正のまま。キル確率 0 が確定し、0 での
+  // 切り上げも起きないので期待値は線形に計算でき、畳み込みを省略できる
+  // (高HPボス相手の比較テーブルで分布が数千状態に膨らむのを避ける)。
+  const hasSpecialBranch = ops.some((o) => (o.isInstantKill || o.isHpCut) && o.activation > 0);
+  const maxTotalDamage = ops.reduce((s, o) => s + o.maxDamage, 0);
+
+  let killProbability = 0;
+  let expectedRemainingHp = 0;
+  if (!hasSpecialBranch && maxTotalDamage < enemy.hp) {
+    expectedRemainingHp = enemy.hp - ops.reduce((s, o) => s + o.pHit * o.meanDamage, 0);
+  } else {
+    // 残りHPの確率分布。初期状態: 満タン HP が確率 1
+    let dist: HpDistribution = new Map([[enemy.hp, 1]]);
+    for (const op of ops) {
       const next: HpDistribution = new Map();
       for (const [hp, p] of dist) {
         if (hp <= 0) {
@@ -120,31 +165,29 @@ export function simulateCombo(input: ComboInput): ComboResult {
           continue;
         }
         // ミス
-        addProb(next, hp, p * (1 - pHit));
+        addProb(next, hp, p * (1 - op.pHit));
 
-        if (isInstantKill) {
+        if (op.isInstantKill) {
           // 発動 → 即死 / 不発 → 特殊ダメージ
-          addProb(next, 0, p * pHit * activation);
-          applyDamageBranches(next, hp, p * pHit * (1 - activation), baseDamage, critChance);
-        } else if (isHpCut && special?.hpCutFraction != null) {
+          addProb(next, 0, p * op.pHit * op.activation);
+          applyDamageDistribution(next, hp, p * op.pHit * (1 - op.activation), op.damageDist);
+        } else if (op.isHpCut && op.hpCutFraction != null) {
           // 発動 → 現在HPの一定割合を削る / 不発 → ダメージなし
-          const cut = Math.floor(hp * special.hpCutFraction);
-          addProb(next, hp - cut, p * pHit * activation);
-          addProb(next, hp, p * pHit * (1 - activation));
+          const cut = Math.floor(hp * op.hpCutFraction);
+          addProb(next, hp - cut, p * op.pHit * op.activation);
+          addProb(next, hp, p * op.pHit * (1 - op.activation));
         } else {
-          applyDamageBranches(next, hp, p * pHit, baseDamage, critChance);
+          applyDamageDistribution(next, hp, p * op.pHit, op.damageDist);
         }
       }
       dist = compact(next);
     }
-  }
 
-  // 集計
-  let killProbability = 0;
-  let expectedRemainingHp = 0;
-  for (const [hp, p] of dist) {
-    if (hp <= 0) killProbability += p;
-    expectedRemainingHp += hp * p;
+    // 集計
+    for (const [hp, p] of dist) {
+      if (hp <= 0) killProbability += p;
+      expectedRemainingHp += hp * p;
+    }
   }
 
   const totals = { min: 0, avg: 0, max: 0, expected: 0 };
@@ -172,25 +215,60 @@ export function simulateCombo(input: ComboInput): ComboResult {
   };
 }
 
-/** 命中時の 通常/クリティカル 分岐を分布へ反映する */
-function applyDamageBranches(
+/** 1ヒットのダメージ分布の支持点数上限 (超えたら等確率バケットで近似) */
+const MAX_DAMAGE_SUPPORT = 128;
+
+/**
+ * 1ヒットの命中時ダメージ分布 ([damage, probability] のリスト、確率合計 1)。
+ * ダメージロールを [min, max] の整数一様分布とみなし (probability.ts と同じ近似)、
+ * クリティカル時は各ロール値に ×1.5 切り捨てを適用する。
+ * 幅が MAX_DAMAGE_SUPPORT を超える場合は等確率バケットの中央値で代表させる
+ * (キル確率の誤差は高々 1/(2×MAX_DAMAGE_SUPPORT) ≈ 0.4%)。
+ */
+function hitDamageDistribution(
+  dmg: { min: number; max: number },
+  critChancePct: number,
+): Array<[number, number]> {
+  const lo = Math.max(0, Math.min(dmg.min, dmg.max));
+  const hi = Math.max(lo, dmg.max);
+  const pCrit = critChancePct / 100;
+  const n = hi - lo + 1;
+  const k = Math.min(n, MAX_DAMAGE_SUPPORT);
+  const acc = new Map<number, number>();
+  for (let i = 0; i < k; i++) {
+    const d = k === n ? lo + i : lo + Math.round(((i + 0.5) * n) / k - 0.5);
+    acc.set(d, (acc.get(d) ?? 0) + (1 - pCrit) / k);
+    if (pCrit > 0) {
+      const cd = criticalDamage(d);
+      acc.set(cd, (acc.get(cd) ?? 0) + pCrit / k);
+    }
+  }
+  return [...acc.entries()];
+}
+
+/** 命中時のダメージ分布 (通常/クリティカル込み) を残りHP分布へ反映する */
+function applyDamageDistribution(
   dist: HpDistribution,
   hp: number,
   pHitTotal: number,
-  baseDamage: number,
-  critChancePct: number,
+  damageDist: Array<[number, number]>,
 ): void {
-  const pCrit = critChancePct / 100;
-  addProb(dist, hp - baseDamage, pHitTotal * (1 - pCrit));
-  if (pCrit > 0) {
-    addProb(dist, hp - criticalDamage(baseDamage), pHitTotal * pCrit);
+  for (const [d, q] of damageDist) {
+    addProb(dist, hp - d, pHitTotal * q);
   }
 }
 
-/** 分布の状態数を抑える (極小確率の枝を丸めて正規化) */
+/** 分布の状態数を抑える (極小確率の枝を刈り、必要なら上位のみ残して正規化) */
 function compact(dist: HpDistribution): HpDistribution {
-  if (dist.size <= 4096) return dist;
-  const entries = [...dist.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4096);
+  // 確率 1e-12 未満の状態は畳み込みコストに見合わないため落とす
+  // (落ちる質量は高々 状態数×1e-12 で結果表示の精度に影響しない)
+  let pruned: HpDistribution = dist;
+  if (dist.size > 256) {
+    pruned = new Map();
+    for (const [hp, p] of dist) if (p >= 1e-12) pruned.set(hp, p);
+  }
+  if (pruned.size <= 4096) return pruned;
+  const entries = [...pruned.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4096);
   const total = entries.reduce((s, [, p]) => s + p, 0);
   return new Map(entries.map(([hp, p]) => [hp, p / total]));
 }
