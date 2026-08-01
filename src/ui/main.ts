@@ -343,12 +343,19 @@ function checkedCombo(step: number): string {
 
 /* ================= プリセット反映 ================= */
 
+let lastClassCategory: string | undefined;
+
 function applyClassPreset(): void {
   const cls = CLASSES[select("cls").value];
   if (!cls) return;
   const stats = input("useMax").checked ? cls.max : cls.lv200;
   input("baseAtp").value = String(stats.atp);
   input("baseAta").value = String(stats.ata);
+  // HU は Smartlink 装備が標準なのでカテゴリが変わったときだけデフォルトを反映
+  if (cls.category !== lastClassCategory) {
+    input("ctxSmartlink").checked = cls.category === "hunter";
+    lastClassCategory = cls.category;
+  }
 }
 
 function applyWeaponPreset(): void {
@@ -1610,7 +1617,10 @@ document.querySelector("main")!.addEventListener("change", render);
 
 void (async () => {
   const restored = await restoreFromUrl();
-  if (!restored) {
+  if (restored) {
+    // 共有URLの Smartlink 状態を尊重し、クラスプリセットで上書きしない
+    lastClassCategory = CLASSES[select("cls").value]?.category;
+  } else {
     applyClassPreset();
     select("wpPreset").value = "Excalibur";
     applyWeaponPreset();
