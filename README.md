@@ -2,7 +2,7 @@
 
 **公開版: https://psobb-teapot.github.io/damage-emulator/**
 
-ソースの正本は [rappyruns](https://github.com/psobb-teapot/rappyruns) の
+ソースの正本は [rappyruns](https://github.com/PSOBBAITools/rappyruns) の
 `damage-emulator/` サブディレクトリ。github.com/psobb-teapot/damage-emulator は
 CI (emulator-mirror.yml) が subtree split を push する**読み取り専用ミラー**で、
 そこへの push が上記 GitHub Pages を自動更新する (サーバーアプリとは独立)。
